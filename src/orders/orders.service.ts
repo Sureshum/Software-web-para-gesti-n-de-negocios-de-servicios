@@ -16,6 +16,7 @@ export class OrdersService {
     return this.orderRepository.save(order);
   }
 
+  // ELIMINA LAS RELACIONES - solo devuelve los datos básicos
   async findAll() {
     return await this.orderRepository.find();
   }
