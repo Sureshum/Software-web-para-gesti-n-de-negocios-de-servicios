@@ -214,8 +214,8 @@ async function loadData() {
         const columnNamesMap = {
             id: 'ID',
             tenantId: 'Negocio ID',
-            clientId: 'Cliente',
-            assignedTo: 'Asignado a',
+            clientId: 'Cliente',        
+            assignedTo: 'Asignado a',  
             name: 'Nombre',
             subdomain: 'Subdominio',
             email: 'Correo',
