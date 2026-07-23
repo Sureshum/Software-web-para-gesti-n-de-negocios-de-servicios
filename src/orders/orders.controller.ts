@@ -13,12 +13,12 @@ export class OrdersController {
   }
 
   @Get()
-  findAll() {
+  findAll(): Promise<ServiceOrder[]> {
     return this.ordersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<ServiceOrder> {
     return this.ordersService.findOne(+id);
   }
 
