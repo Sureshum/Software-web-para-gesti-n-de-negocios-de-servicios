@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
-import { Inventory } from './entities/inventory.entity';
 
 @Controller('inventory')
 export class InventoryController {
@@ -13,12 +12,12 @@ export class InventoryController {
   }
 
   @Get()
-  findAll(): Promise<Inventory[]> {
+  findAll(): Promise<any[]> {
     return this.inventoryService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Inventory> {
+  findOne(@Param('id') id: string): Promise<any> {
     return this.inventoryService.findOne(+id);
   }
 
@@ -27,8 +26,8 @@ export class InventoryController {
     return this.inventoryService.remove(+id);
   }
 
-    @Put(':id')
-    update(@Param('id') id: string, @Body() updateDto: any) {
-      return this.inventoryService.update(+id, updateDto);
-    }
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateDto: any) {
+    return this.inventoryService.update(+id, updateDto);
+  }
 }
