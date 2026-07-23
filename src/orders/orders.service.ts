@@ -34,19 +34,27 @@ export class OrdersService {
     });
 
     return orders.map(order => {
-      // Función para limpiar nombres
+      // Función para extraer el nombre limpio
       const getCleanName = (value: any): string => {
         if (!value) return 'Sin asignar';
+        
+        // Si es un objeto con propiedad name
         if (typeof value === 'object' && value.name) {
           return value.name;
         }
+        
+        // Si es un string, limpiar prefijos
         if (typeof value === 'string') {
-          return value
-            .replace(/^Cliente #/, '')
-            .replace(/^Usuario #/, '')
+          // Eliminar "Cliente #", "Usuario #", "Cliente#", "Usuario#"
+          let clean = value
+            .replace(/^Cliente\s*#\s*/, '')
+            .replace(/^Usuario\s*#\s*/, '')
             .replace(/^Cliente#/, '')
-            .replace(/^Usuario#/, '');
+            .replace(/^Usuario#/, '')
+            .trim();
+          return clean || value;
         }
+        
         return String(value);
       };
 
