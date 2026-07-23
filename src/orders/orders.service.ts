@@ -17,18 +17,13 @@ export class OrdersService {
   }
 
   findAll(): Promise<ServiceOrder[]> {
-    return this.orderRepository.find({
-      relations: ['user', 'client'], // Asegúrate de que estos nombres coincidan con las propiedades de tu entidad Order
-    });
+    return this.orderRepository.find();
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
-    const item = await this.orderRepository.findOne({
-      where: { id },
-      relations: ['user', 'client'], // También puedes agregarlo aquí si usas el detalle individual
-    });
+    const item = await this.orderRepository.findOneBy({ id });
     if (!item) {
-      throw new NotFoundException(`Orden con ID ${id} no encontrada`);
+      throw new NotFoundException(Orden con ID ${id} no encontrada);
     }
     return item;
   }
@@ -36,7 +31,7 @@ export class OrdersService {
   async update(id: number, updateDto: any) {
     const result = await this.orderRepository.update(id, updateDto);
     if (result.affected === 0) {
-      throw new NotFoundException(`Orden con ID ${id} no encontrada`);
+      throw new NotFoundException(Orden con ID ${id} no encontrada);
     }
     return this.findOne(id);
   }
@@ -44,8 +39,10 @@ export class OrdersService {
   async remove(id: number) {
     const result = await this.orderRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Orden de servicio con ID ${id} no encontrada`);
+      throw new NotFoundException(Orden de servicio con ID ${id} no encontrada);
     }
     return { message: 'Orden eliminada exitosamente' };
   }
+
+
 }
