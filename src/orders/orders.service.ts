@@ -16,20 +16,14 @@ export class OrdersService {
     return this.orderRepository.save(order);
   }
 
+  // ESTE ES EL findAll CORRECTO - SIN RELACIONES
   async findAll() {
-    return await this.orderRepository
-      .createQueryBuilder('order')
-      .select([
-        'order.id',
-        'order.tenantId',
-        'order.clientId',
-        'order.assignedTo',
-        'order.status',
-        'order.description',
-        'order.totalCost',
-        'order.createdAt'
-      ])
-      .getMany();
+    try {
+      return await this.orderRepository.find();
+    } catch (error) {
+      console.error('Error en findAll:', error);
+      throw error;
+    }
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
