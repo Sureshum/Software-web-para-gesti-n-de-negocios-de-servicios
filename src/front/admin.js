@@ -229,9 +229,9 @@ async function loadData() {
         if (currentEntity === 'service-orders') {
             keys = ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt'];
         } else {
+            const unwanted = ['client', 'user', 'clientname', 'username', 'clientName', 'userName', 'updatedat', 'updatedAt'];
             keys = Object.keys(data[0]).filter(key => {
-                const k = key.toLowerCase();
-                return !blacklist.includes(key) && !blacklist.includes(k) && typeof data[0][key] !== 'object';
+                return !unwanted.includes(key) && !unwanted.includes(key.toLowerCase()) && typeof data[0][key] !== 'object';
             });
         }
 
