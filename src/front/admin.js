@@ -419,4 +419,39 @@ async function loadData() {
         console.error(error);
         tableBody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-red-500">Error al conectar con el servidor o el endpoint GET no está creado.</td></tr>`;
     }
+
+    async function saveEdit(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const updatedData = {};
+    
+    formData.forEach((value, key) => {
+        // Si el valor es un string vacío, lo ignoramos
+        if (value === '') return;
+        
+        // Si es un número (ID), lo convertimos
+        if (!isNaN(value) && value.trim() !== '') {
+            updatedData[key] = Number(value);
+        } else {
+            updatedData[key] = value;
+        }
+    });
+
+    try {
+        const response = await fetch(`${API_URL}/${currentEntity}/${editingId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+        });
+
+        if (!response.ok) throw new Error('No se pudo actualizar');
+
+        closeEditModal();
+        loadData();
+        alert('Registro actualizado con éxito');
+    } catch (error) {
+        console.error(error);
+        alert('Error al actualizar el registro en el servidor.');
+    }
+}
 }
