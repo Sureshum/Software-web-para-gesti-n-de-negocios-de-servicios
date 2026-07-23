@@ -1,5 +1,10 @@
 Software-web-para-gestion-de-negocios
+
 LA CONTRASEÑA PARA INGRESAR AL ADMIN ES admin
+
+pagina
+
+https://gestor-de-negocios.pages.dev
 
 Una plataforma web diseñada para que pequeños negocios (como talleres, centros técnicos, entre otros) administren sus operaciones diarias de forma centralizada. El sistema opera mediante módulos independientes que permiten gestionar de punta a punta el ciclo del negocio
 Tecnologías y Diseño
