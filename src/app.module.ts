@@ -8,16 +8,16 @@ import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
-
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root', 
-      password: 'Sebashum.12.', 
-      database: 'saas', 
+      host: (globalThis as any).process?.env?.DB_HOST || 'localhost',
+      port: Number((globalThis as any).process?.env?.DB_PORT) || 3306,
+      username: (globalThis as any).process?.env?.DB_USER || 'root', 
+      password: (globalThis as any).process?.env?.DB_PASSWORD || 'Sebashum.12.', 
+      database: (globalThis as any).process?.env?.DB_NAME || 'saas', 
       autoLoadEntities: true, 
       synchronize: true, 
+      ssl: (globalThis as any).process?.env?.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
     
     TenantsModule,
