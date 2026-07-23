@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';  // <-- Aquí faltaba "from"
+import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServiceOrder } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -23,7 +23,7 @@ export class OrdersService {
 
     return orders.map(order => ({
       id: order.id,
-      tenantId: order.tenantId,
+      tenantId: order.tenant?.name || order.tenantId || 'Sin negocio',  
       clientId: order.client?.name || 'Sin cliente',
       assignedTo: order.user?.name || 'Sin asignar',
       status: order.status,
