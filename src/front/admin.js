@@ -125,45 +125,155 @@ async function openEditModal(id) {
     try {
         const response = await fetch(`${API_URL}/${currentEntity}/${id}`);
         if (!response.ok) throw new Error('No se pudo obtener el registro');
-        const item = await response.json();
+        const rawItem = await response.json();
+
+        let clients = [];
+        let users = [];
+        let tenants = [];
+
+        if (currentEntity === 'service-orders') {
+            try {
+                const [clientsRes, usersRes, tenantsRes] = await Promise.all([
+                    fetch(`${API_URL}/clients`),
+                    fetch(`${API_URL}/users`),
+                    fetch(`${API_URL}/tenants`)
+                ]);
+                clients = await clientsRes.json();
+                users = await usersRes.json();
+                tenants = await tenantsRes.json();
+            } catch (error) {
+                console.error('Error cargando datos para selects:', error);
+            }
+        }
 
         const container = document.getElementById('editFormFields');
         container.innerHTML = '';
 
-        // Definir qué campos mostrar en el modal de edición
+        const cleanItem = {};
+        for (const [key, value] of Object.entries(rawItem)) {
+            if (value !== null && typeof value !== 'object') {
+                cleanItem[key] = value;
+            }
+        }
+
         const fieldsToShow = {
-            'tenants': ['name', 'subdomain', 'email', 'phone'],
-            'users': ['tenantId', 'name', 'email', 'role', 'phone'],
-            'clients': ['tenantId', 'name', 'email', 'phone'],
-            'inventory': ['tenantId', 'name', 'stock', 'minStockAlert', 'unitPrice'],
-            'service-orders': ['tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost']
+            'tenants': [
+                { key: 'name', label: 'Nombre' },
+                { key: 'subdomain', label: 'Subdominio' },
+                { key: 'email', label: 'Correo Electrónico' },
+                { key: 'phone', label: 'Teléfono' }
+            ],
+            'users': [
+                { key: 'tenantId', label: 'Negocio' },
+                { key: 'name', label: 'Nombre' },
+                { key: 'email', label: 'Correo Electrónico' },
+                { key: 'role', label: 'Rol' },
+                { key: 'phone', label: 'Teléfono' }
+            ],
+            'clients': [
+                { key: 'tenantId', label: 'Negocio' },
+                { key: 'name', label: 'Nombre' },
+                { key: 'email', label: 'Correo Electrónico' },
+                { key: 'phone', label: 'Teléfono' }
+            ],
+            'inventory': [
+                { key: 'tenantId', label: 'Negocio' },
+                { key: 'name', label: 'Nombre del Producto' },
+                { key: 'stock', label: 'Stock' },
+                { key: 'minStockAlert', label: 'Alerta Mínima' },
+                { key: 'unitPrice', label: 'Precio Unitario' }
+            ],
+            'service-orders': [
+                { key: 'tenantId', label: 'Vendedor' },
+                { key: 'clientId', label: 'Cliente' },
+                { key: 'assignedTo', label: 'Usuario Asignado' },
+                { key: 'status', label: 'Estado' },
+                { key: 'description', label: 'Descripción' },
+                { key: 'totalCost', label: 'Costo Total' }
+            ]
         };
 
         const allowedFields = fieldsToShow[currentEntity] || [];
 
-        for (const key of allowedFields) {
-            if (!(key in item)) continue;
+        for (const field of allowedFields) {
+            const key = field.key;
+            const label = field.label;
             
-            const value = item[key];
+            if (!(key in cleanItem)) continue;
+            
+            const value = cleanItem[key];
             const div = document.createElement('div');
             div.className = 'flex flex-col';
             
-            // Si es un campo que no sea ID, mostrarlo como texto
-            if (key === 'status' && currentEntity === 'service-orders') {
-                const statuses = ['pending', 'in_progress', 'completed', 'cancelled'];
-                let selectOptions = statuses.map(st => 
-                    `<option value="${st}" ${st === value ? 'selected' : ''}>${st}</option>`
-                ).join('');
-                
-                div.innerHTML = `
-                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
-                    <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
-                        ${selectOptions}
-                    </select>
-                `;
+            if (currentEntity === 'service-orders') {
+                if (key === 'tenantId') {
+                    let options = `<option value="">Seleccionar vendedor...</option>`;
+                    tenants.forEach(tenant => {
+                        const selected = tenant.id === value ? 'selected' : '';
+                        options += `<option value="${tenant.id}" ${selected}>${tenant.name}</option>`;
+                    });
+                    div.innerHTML = `
+                        <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${label}</label>
+                        <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                            ${options}
+                        </select>
+                    `;
+                }
+                else if (key === 'clientId') {
+                    let options = `<option value="">Seleccionar cliente...</option>`;
+                    clients.forEach(client => {
+                        const selected = client.id === value ? 'selected' : '';
+                        options += `<option value="${client.id}" ${selected}>${client.name}</option>`;
+                    });
+                    div.innerHTML = `
+                        <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${label}</label>
+                        <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                            ${options}
+                        </select>
+                    `;
+                }
+                else if (key === 'assignedTo') {
+                    let options = `<option value="">Seleccionar usuario...</option>`;
+                    users.forEach(user => {
+                        const selected = user.id === value ? 'selected' : '';
+                        options += `<option value="${user.id}" ${selected}>${user.name}</option>`;
+                    });
+                    div.innerHTML = `
+                        <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${label}</label>
+                        <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                            ${options}
+                        </select>
+                    `;
+                }
+                else if (key === 'status') {
+                    const statuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+                    const statusLabels = {
+                        'pending': 'Pendiente',
+                        'in_progress': 'En Progreso',
+                        'completed': 'Completado',
+                        'cancelled': 'Cancelado'
+                    };
+                    let selectOptions = statuses.map(st => 
+                        `<option value="${st}" ${st === value ? 'selected' : ''}>${statusLabels[st] || st}</option>`
+                    ).join('');
+                    
+                    div.innerHTML = `
+                        <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${label}</label>
+                        <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                            ${selectOptions}
+                        </select>
+                    `;
+                }
+                else {
+                    div.innerHTML = `
+                        <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${label}</label>
+                        <input type="text" name="${key}" value="${value !== null && value !== undefined ? value : ''}" 
+                               class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                    `;
+                }
             } else {
                 div.innerHTML = `
-                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
+                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${label}</label>
                     <input type="text" name="${key}" value="${value !== null && value !== undefined ? value : ''}" 
                            class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
                 `;
@@ -175,37 +285,6 @@ async function openEditModal(id) {
     } catch (error) {
         console.error('Error en openEditModal:', error);
         alert('Error al cargar los datos para editar.');
-    }
-}
-
-async function saveEdit(event) {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const updatedData = {};
-    
-    formData.forEach((value, key) => {
-        if (!isNaN(value) && value.trim() !== '') {
-            updatedData[key] = Number(value);
-        } else {
-            updatedData[key] = value;
-        }
-    });
-
-    try {
-        const response = await fetch(`${API_URL}/${currentEntity}/${editingId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedData)
-        });
-
-        if (!response.ok) throw new Error('No se pudo actualizar');
-
-        closeEditModal();
-        loadData();
-        alert('Registro actualizado con éxito');
-    } catch (error) {
-        console.error(error);
-        alert('Error al actualizar el registro en el servidor.');
     }
 }
 
