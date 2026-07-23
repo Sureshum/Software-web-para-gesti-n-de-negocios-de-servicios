@@ -16,13 +16,28 @@ export class OrdersService {
     return this.orderRepository.save(order);
   }
 
-  // ELIMINA LAS RELACIONES - solo devuelve los datos básicos
   async findAll() {
-    return await this.orderRepository.find();
+    const orders = await this.orderRepository.find({
+      relations: ['client', 'user', 'tenant'],
+    });
+
+    return orders.map(order => ({
+      id: order.id,
+      tenantId: order.tenantId,
+      clientId: order.client?.name || 'Sin cliente',
+      assignedTo: order.user?.name || 'Sin asignar',
+      status: order.status,
+      description: order.description,
+      totalCost: order.totalCost,
+      createdAt: order.createdAt,
+    }));
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
-    const item = await this.orderRepository.findOneBy({ id });
+    const item = await this.orderRepository.findOne({
+      where: { id },
+      relations: ['client', 'user', 'tenant'],
+    });
     if (!item) {
       throw new NotFoundException(`Orden con ID ${id} no encontrada`);
     }
