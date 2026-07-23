@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServiceOrder } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { OrderResponseDto } from './dto/order-response.dto';
 
 @Injectable()
 export class OrdersService {
@@ -16,16 +17,16 @@ export class OrdersService {
     return this.orderRepository.save(order);
   }
 
-  async findAll() {
+  async findAll(): Promise<OrderResponseDto[]> {
     const orders = await this.orderRepository.find({
       relations: ['client', 'user', 'tenant'],
     });
-  
+
     return orders.map(order => ({
       id: order.id,
       tenantId: order.tenantId,
-      clientId: order.client?.name || order.clientId, 
-      assignedTo: order.user?.name || order.assignedTo, 
+      clientId: order.client?.name || order.clientId,
+      assignedTo: order.user?.name || order.assignedTo,
       status: order.status,
       description: order.description,
       totalCost: order.totalCost,
@@ -34,10 +35,7 @@ export class OrdersService {
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
-    const item = await this.orderRepository.findOne({
-      where: { id },
-      relations: ['client', 'user', 'tenant'],
-    });
+    const item = await this.orderRepository.findOneBy({ id });
     if (!item) {
       throw new NotFoundException(`Orden con ID ${id} no encontrada`);
     }
@@ -59,6 +57,4 @@ export class OrdersService {
     }
     return { message: 'Orden eliminada exitosamente' };
   }
-
-  
 }
