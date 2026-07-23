@@ -16,8 +16,10 @@ export class OrdersService {
     return this.orderRepository.save(order);
   }
 
-  findAll(): Promise<ServiceOrder[]> {
-    return this.orderRepository.find();
+  async findAll() {
+    return await this.orderRepository.find({
+      relations: ['client', 'user', 'tenant'],
+    });
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
