@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebar.classList.toggle('-translate-x-full');
         });
 
-        // Ocultar el menú automáticamente al hacer clic en una opción en pantallas pequeñas
         sidebar.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (window.innerWidth < 768) {
@@ -99,7 +98,6 @@ async function updateOrderStatus(id, newStatus) {
 
         if (!response.ok) throw new Error('No se pudo actualizar el estado');
         
-        // No llamamos a loadData() para evitar que el select parpadee o se ponga en blanco
     } catch (error) {
         console.error(error);
         alert('Error al actualizar el estado en el servidor.'); 
@@ -134,7 +132,7 @@ async function openEditModal(id) {
         container.innerHTML = '';
 
         for (const [key, value] of Object.entries(item)) {
-            if (key === 'id' || key === 'createdAt' || key === 'updatedAt') continue;
+            if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || typeof value === 'object') continue;
 
             const div = document.createElement('div');
             div.className = 'flex flex-col';
@@ -309,11 +307,11 @@ async function loadData() {
                     
                     // Mostrar nombres en lugar de IDs si el backend envía los objetos relacionados
                     if (currentEntity === 'service-orders' && key === 'clientId') {
-                        const clientName = item.client && item.client.name ? item.client.name : `Cliente #${rawValue}`;
+                        const clientName = (item.client && item.client.name) ? item.client.name : `Cliente #${rawValue}`;
                         bodyHtml += `<td class="p-3 font-semibold text-slate-700">${clientName}</td>`;
                     } 
                     else if (currentEntity === 'service-orders' && key === 'assignedTo') {
-                        const userName = item.user && item.user.name ? item.user.name : `Usuario #${rawValue}`;
+                        const userName = (item.user && item.user.name) ? item.user.name : `Usuario #${rawValue}`;
                         bodyHtml += `<td class="p-3 font-semibold text-slate-700">${userName}</td>`;
                     } 
                     else if (key.toLowerCase() === 'id' || key.toLowerCase().endsWith('id')) {
