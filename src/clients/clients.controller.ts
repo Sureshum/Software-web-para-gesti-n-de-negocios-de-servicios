@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
-import { Client } from './entities/client.entity';
 
 @Controller('clients')
 export class ClientsController {
@@ -13,12 +12,12 @@ export class ClientsController {
   }
 
   @Get()
-  findAll(): Promise<Client[]> {
+  findAll(): Promise<any[]> {
     return this.clientsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Client> {
+  findOne(@Param('id') id: string): Promise<any> {
     return this.clientsService.findOne(+id);
   }
 
