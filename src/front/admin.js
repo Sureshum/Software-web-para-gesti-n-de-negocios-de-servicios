@@ -195,17 +195,26 @@ async function loadData() {
         const response = await fetch(`${API_URL}/${currentEntity}`);
         if (!response.ok) throw new Error('No se pudo obtener la información');
         
-        const data = await response.json();
+        let data = await response.json();
 
         if (data.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-500">No hay registros en esta tabla.</td></tr>`;
             return;
         }
 
+        // Definir columnas para cada entidad
+        const entityColumns = {
+            'tenants': ['id', 'name', 'subdomain', 'email', 'phone', 'createdAt', 'updatedAt'],
+            'users': ['id', 'tenantId', 'name', 'email', 'role', 'phone', 'createdAt', 'updatedAt'],
+            'clients': ['id', 'tenantId', 'name', 'email', 'phone', 'createdAt', 'updatedAt'],
+            'inventory': ['id', 'tenantId', 'name', 'stock', 'minStockAlert', 'unitPrice', 'createdAt', 'updatedAt'],
+            'service-orders': ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt']
+        };
+
         const columnNamesMap = {
             id: 'ID',
             tenantId: 'Negocio ID',
-            clientId: 'Cliente ID',
+            clientId: 'Cliente',
             assignedTo: 'Asignado a',
             name: 'Nombre',
             subdomain: 'Subdominio',
@@ -223,16 +232,14 @@ async function loadData() {
             updatedAt: 'Fecha de Actualización'
         };
 
-        // Usar SOLO las llaves que existen en el primer objeto
-        const keys = Object.keys(data[0]);
+        // Obtener las columnas permitidas
+        const allowedKeys = entityColumns[currentEntity] || Object.keys(data[0]);
+        const keys = allowedKeys.filter(key => key in data[0]);
         
         let headHtml = '<tr>';
         keys.forEach(key => {
-            // Solo mostrar la columna si existe en el mapa de nombres
-            if (columnNamesMap[key]) {
-                const displayName = columnNamesMap[key];
-                headHtml += `<th class="p-3 font-semibold uppercase text-xs">${displayName}</th>`;
-            }
+            const displayName = columnNamesMap[key] || key.toUpperCase();
+            headHtml += `<th class="p-3 font-semibold uppercase text-xs">${displayName}</th>`;
         });
         headHtml += `<th class="p-3 font-semibold uppercase text-xs text-center">Acciones</th>`;
         headHtml += '</tr>';
@@ -243,9 +250,6 @@ async function loadData() {
             bodyHtml += '<tr class="hover:bg-slate-50 transition border-b border-slate-100">';
             
             keys.forEach(key => {
-                // Solo mostrar si la columna existe en el mapa de nombres
-                if (!columnNamesMap[key]) return;
-                
                 const rawValue = item[key];
                 
                 if (currentEntity === 'service-orders' && key.toLowerCase() === 'status') {
