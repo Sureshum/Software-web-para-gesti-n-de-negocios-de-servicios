@@ -22,7 +22,6 @@ function logout() {
     document.getElementById('adminPassword').value = '';
 }
 
-
 document.addEventListener('DOMContentLoaded', () => {
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const sidebar = document.getElementById('sidebar');
@@ -260,11 +259,11 @@ async function loadData() {
             updatedAt: 'Fecha de Actualización'
         };
 
-        // Forzamos las columnas exactas que queremos mostrar y en el orden deseado (cortando todo lo demás)
-        let keys = ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt'];
-        
-        // Si no estamos en service-orders, usamos las llaves normales del objeto pero filtradas
-        if (currentEntity !== 'service-orders') {
+        // Definición estricta de llaves según la entidad para evitar columnas no deseadas
+        let keys = [];
+        if (currentEntity === 'service-orders') {
+            keys = ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt'];
+        } else {
             keys = Object.keys(data[0]).filter(key => {
                 const k = key.toLowerCase();
                 return k !== 'client' && k !== 'user' && k !== 'clientname' && k !== 'username' && k !== 'updatedat' &&
