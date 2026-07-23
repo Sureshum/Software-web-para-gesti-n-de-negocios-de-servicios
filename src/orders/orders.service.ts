@@ -17,9 +17,7 @@ export class OrdersService {
   }
 
   async findAll() {
-    return await this.orderRepository.find({
-      relations: ['client', 'user', 'tenant'], // Esto es clave para que traiga los datos relacionados
-    });
+    return await this.orderRepository.find();
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
@@ -45,6 +43,4 @@ export class OrdersService {
     }
     return { message: 'Orden eliminada exitosamente' };
   }
-
-  
 }
