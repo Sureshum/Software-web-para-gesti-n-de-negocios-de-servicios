@@ -17,8 +17,19 @@ export class OrdersService {
   }
 
   async findAll() {
-    // Elimina las relaciones - solo devuelve los datos básicos
-    return await this.orderRepository.find();
+    return await this.orderRepository
+      .createQueryBuilder('order')
+      .select([
+        'order.id',
+        'order.tenantId',
+        'order.clientId',
+        'order.assignedTo',
+        'order.status',
+        'order.description',
+        'order.totalCost',
+        'order.createdAt'
+      ])
+      .getMany();
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
