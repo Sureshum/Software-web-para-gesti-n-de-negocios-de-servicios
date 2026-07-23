@@ -18,7 +18,7 @@ export class OrdersService {
 
   async findAll() {
     const orders = await this.orderRepository.find({
-      relations: ['client', 'user', 'tenant'],
+      relations: ['client', 'user'],
     });
   
     // Mapeamos para asegurar una estructura plana y segura para el frontend
