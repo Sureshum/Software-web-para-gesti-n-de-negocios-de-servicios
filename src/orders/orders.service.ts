@@ -17,11 +17,16 @@ export class OrdersService {
   }
 
   findAll(): Promise<ServiceOrder[]> {
-    return this.orderRepository.find();
+    return this.orderRepository.find({
+      relations: ['user', 'client'], // Asegúrate de que estos nombres coincidan con las propiedades de tu entidad Order
+    });
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
-    const item = await this.orderRepository.findOneBy({ id });
+    const item = await this.orderRepository.findOne({
+      where: { id },
+      relations: ['user', 'client'], // También puedes agregarlo aquí si usas el detalle individual
+    });
     if (!item) {
       throw new NotFoundException(`Orden con ID ${id} no encontrada`);
     }
@@ -43,6 +48,4 @@ export class OrdersService {
     }
     return { message: 'Orden eliminada exitosamente' };
   }
-
-  
 }
