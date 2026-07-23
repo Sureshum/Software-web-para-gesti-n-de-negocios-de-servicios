@@ -97,7 +97,7 @@ export class OrdersService {
     });
   }
 
-  async findOne(id: number): Promise<ServiceOrder> {
+  async findOne(id: number): Promise<any> {
     const item = await this.orderRepository.findOne({
       where: { id },
       relations: ['client', 'user', 'tenant'],
@@ -105,7 +105,17 @@ export class OrdersService {
     if (!item) {
       throw new NotFoundException(`Orden con ID ${id} no encontrada`);
     }
-    return item;
+    
+    return {
+      id: item.id,
+      tenantId: item.tenantId,
+      clientId: item.clientId,
+      assignedTo: item.assignedTo,
+      status: item.status,
+      description: item.description,
+      totalCost: item.totalCost,
+      createdAt: item.createdAt,
+    };
   }
 
   async update(id: number, updateDto: any) {
