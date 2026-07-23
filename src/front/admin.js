@@ -223,27 +223,16 @@ async function loadData() {
             updatedAt: 'Fecha de Actualización'
         };
 
-        const blacklist = ['client', 'user', 'clientname', 'username', 'clientName', 'userName', 'updatedat', 'updatedAt'];
-
-        let keys = [];
-        const forbiddenKeys = ['client', 'user', 'clientname', 'username', 'clientname', 'updatedat'];
-
-        if (currentEntity === 'service-orders') {
-            keys = ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt'].filter(k => {
-                const lower = k.toLowerCase();
-                return !forbiddenKeys.includes(lower);
-            });
-        } else {
-            keys = Object.keys(data[0]).filter(key => {
-                const lower = key.toLowerCase();
-                return !forbiddenKeys.includes(lower) && typeof data[0][key] !== 'object';
-            });
-        }
-
+        // Usar SOLO las llaves que existen en el primer objeto
+        const keys = Object.keys(data[0]);
+        
         let headHtml = '<tr>';
         keys.forEach(key => {
-            const displayName = columnNamesMap[key] || key.toUpperCase();
-            headHtml += `<th class="p-3 font-semibold uppercase text-xs">${displayName}</th>`;
+            // Solo mostrar la columna si existe en el mapa de nombres
+            if (columnNamesMap[key]) {
+                const displayName = columnNamesMap[key];
+                headHtml += `<th class="p-3 font-semibold uppercase text-xs">${displayName}</th>`;
+            }
         });
         headHtml += `<th class="p-3 font-semibold uppercase text-xs text-center">Acciones</th>`;
         headHtml += '</tr>';
@@ -254,6 +243,9 @@ async function loadData() {
             bodyHtml += '<tr class="hover:bg-slate-50 transition border-b border-slate-100">';
             
             keys.forEach(key => {
+                // Solo mostrar si la columna existe en el mapa de nombres
+                if (!columnNamesMap[key]) return;
+                
                 const rawValue = item[key];
                 
                 if (currentEntity === 'service-orders' && key.toLowerCase() === 'status') {
@@ -268,21 +260,22 @@ async function loadData() {
                     
                     bodyHtml += `<td class="p-3">${selectHtml}</td>`;
                 } 
-                else if (currentEntity === 'service-orders' && key === 'clientId') {
-                    const clientName = (item.client && item.client.name) ? item.client.name : `Cliente #${rawValue}`;
-                    bodyHtml += `<td class="p-3 font-semibold text-slate-700">${clientName}</td>`;
-                } 
-                else if (currentEntity === 'service-orders' && key === 'assignedTo') {
-                    const userName = (item.user && item.user.name) ? item.user.name : `Usuario #${rawValue}`;
-                    bodyHtml += `<td class="p-3 font-semibold text-slate-700">${userName}</td>`;
-                }
-                else {
+                else if (currentEntity === 'inventory' && key.toLowerCase() === 'stock') {
+                    bodyHtml += `
+                        <td class="p-3">
+                            <div class="flex items-center gap-3">
+                                <span class="font-bold text-slate-900 text-base" id="stock-val-${item.id}">${rawValue}</span>
+                                <div class="flex items-center border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm">
+                                    <input type="number" id="qty-${item.id}" value="1" min="1" class="w-10 text-center py-0.5 text-xs font-semibold bg-transparent outline-none border-r border-slate-200">
+                                    <button onclick="adjustStock(${item.id}, -1)" class="bg-rose-500 hover:bg-rose-600 text-white px-2 py-0.5 text-xs font-bold transition" title="Restar stock">-</button>
+                                    <button onclick="adjustStock(${item.id}, 1)" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-0.5 text-xs font-bold transition" title="Sumar stock">+</button>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                } else {
                     const formattedValue = formatCellValue(key, rawValue);
-                    if (key.toLowerCase() === 'id' || key.toLowerCase().endsWith('id')) {
-                        bodyHtml += `<td class="p-3 font-bold text-indigo-600">${formattedValue}</td>`;
-                    } else {
-                        bodyHtml += `<td class="p-3 text-slate-600 truncate max-w-xs">${formattedValue}</td>`;
-                    }
+                    bodyHtml += `<td class="p-3 text-slate-600 truncate max-w-xs">${formattedValue}</td>`;
                 }
             });
 
