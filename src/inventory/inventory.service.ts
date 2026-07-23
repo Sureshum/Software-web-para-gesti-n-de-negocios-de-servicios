@@ -28,12 +28,40 @@ export class InventoryService {
     return this.findOne(id);
   }
 
-  async findAll(): Promise<Inventory[]> {
-    return await this.inventoryRepository.find();
+  async findAll() {
+    const items = await this.inventoryRepository.find({
+      relations: ['tenant'],
+    });
+    
+    return items.map(item => ({
+      id: item.id,
+      tenantId: item.tenant?.name || item.tenantId || 'Sin negocio',
+      name: item.name,
+      stock: item.stock,
+      minStockAlert: item.minStockAlert,
+      unitPrice: item.unitPrice,
+      createdAt: item.createdAt,
+    }));
   }
 
-  async findOne(id: number): Promise<Inventory> {
-    return await this.inventoryRepository.findOneBy({ id });
+  async findOne(id: number): Promise<any> {
+    const item = await this.inventoryRepository.findOne({
+      where: { id },
+      relations: ['tenant'],
+    });
+    if (!item) {
+      throw new NotFoundException(`Registro con ID ${id} no encontrado`);
+    }
+    
+    return {
+      id: item.id,
+      tenantId: item.tenantId,
+      name: item.name,
+      stock: item.stock,
+      minStockAlert: item.minStockAlert,
+      unitPrice: item.unitPrice,
+      createdAt: item.createdAt,
+    };
   }
 
   async remove(id: number) {
