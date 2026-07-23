@@ -226,12 +226,17 @@ async function loadData() {
         const blacklist = ['client', 'user', 'clientname', 'username', 'clientName', 'userName', 'updatedat', 'updatedAt'];
 
         let keys = [];
+        const forbiddenKeys = ['client', 'user', 'clientname', 'username', 'clientname', 'updatedat'];
+
         if (currentEntity === 'service-orders') {
-            keys = ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt'];
+            keys = ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt'].filter(k => {
+                const lower = k.toLowerCase();
+                return !forbiddenKeys.includes(lower);
+            });
         } else {
-            const unwanted = ['client', 'user', 'clientname', 'username', 'clientName', 'userName', 'updatedat', 'updatedAt'];
             keys = Object.keys(data[0]).filter(key => {
-                return !unwanted.includes(key) && !unwanted.includes(key.toLowerCase()) && typeof data[0][key] !== 'object';
+                const lower = key.toLowerCase();
+                return !forbiddenKeys.includes(lower) && typeof data[0][key] !== 'object';
             });
         }
 
