@@ -125,26 +125,68 @@ async function openEditModal(id) {
     try {
         const response = await fetch(`${API_URL}/${currentEntity}/${id}`);
         if (!response.ok) throw new Error('No se pudo obtener el registro');
-        const item = await response.json();
+        const rawItem = await response.json();
 
         const container = document.getElementById('editFormFields');
         container.innerHTML = '';
 
-        for (const [key, value] of Object.entries(item)) {
-            if (key === 'id' || key === 'createdAt' || key === 'updatedAt') continue;
+        const cleanItem = {};
+        for (const [key, value] of Object.entries(rawItem)) {
+            if (value !== null && typeof value !== 'object') {
+                cleanItem[key] = value;
+            }
+        }
 
+        const fieldsToShow = {
+            'tenants': ['name', 'subdomain', 'email', 'phone'],
+            'users': ['tenantId', 'name', 'email', 'role', 'phone'],
+            'clients': ['tenantId', 'name', 'email', 'phone'],
+            'inventory': ['tenantId', 'name', 'stock', 'minStockAlert', 'unitPrice'],
+            'service-orders': ['tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost']
+        };
+
+        const allowedFields = fieldsToShow[currentEntity] || [];
+
+        for (const key of allowedFields) {
+            if (!(key in cleanItem)) continue;
+            
+            const value = cleanItem[key];
             const div = document.createElement('div');
             div.className = 'flex flex-col';
-            div.innerHTML = `
-                <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
-                <input type="text" name="${key}" value="${value !== null ? value : ''}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
-            `;
+            
+            if (key === 'tenantId' || key === 'clientId' || key === 'assignedTo') {
+                div.innerHTML = `
+                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
+                    <input type="number" name="${key}" value="${value !== null && value !== undefined ? value : ''}" 
+                           class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50" 
+                           readonly>
+                    <span class="text-xs text-slate-400 mt-1">⚠️ Este campo no se puede editar</span>
+                `;
+            } else if (key === 'status' && currentEntity === 'service-orders') {
+                const statuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+                let selectOptions = statuses.map(st => 
+                    `<option value="${st}" ${st === value ? 'selected' : ''}>${st}</option>`
+                ).join('');
+                
+                div.innerHTML = `
+                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
+                    <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                        ${selectOptions}
+                    </select>
+                `;
+            } else {
+                div.innerHTML = `
+                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
+                    <input type="text" name="${key}" value="${value !== null && value !== undefined ? value : ''}" 
+                           class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                `;
+            }
             container.appendChild(div);
         }
 
         document.getElementById('editModal').classList.remove('hidden');
     } catch (error) {
-        console.error(error);
+        console.error('Error en openEditModal:', error);
         alert('Error al cargar los datos para editar.');
     }
 }
