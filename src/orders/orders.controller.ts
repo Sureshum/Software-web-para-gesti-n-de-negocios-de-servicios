@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete, Put } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { OrderResponseDto } from './dto/order-response.dto';
 import { ServiceOrder } from './entities/order.entity';
 
 @Controller('service-orders')
@@ -14,8 +13,13 @@ export class OrdersController {
   }
 
   @Get()
-  findAll(): Promise<OrderResponseDto[]> {
+  findAll() {
     return this.ordersService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.ordersService.findOne(+id);
   }
 
   @Patch(':id')
