@@ -98,6 +98,8 @@ async function updateOrderStatus(id, newStatus) {
         });
 
         if (!response.ok) throw new Error('No se pudo actualizar el estado');
+        
+        // No llamamos a loadData() para evitar que el select parpadee o se ponga en blanco
     } catch (error) {
         console.error(error);
         alert('Error al actualizar el estado en el servidor.'); 
@@ -213,7 +215,6 @@ async function adjustStock(id, multiplier) {
 
         if (!response.ok) throw new Error('Error al actualizar el stock');
 
-        // Actualizar visualmente al instante
         stockElement.textContent = newStock;
         qtyInput.value = 1;
     } catch (error) {
@@ -303,17 +304,22 @@ async function loadData() {
                             </div>
                         </td>
                     `;
-                }else {
+                } else {
                     const formattedValue = formatCellValue(key, rawValue);
                     
-                    // Si quieres mostrar etiquetas amigables para las llaves foráneas:
-                    if (key === 'clientId' && item.clientName) {
-                        bodyHtml += `<td class="p-3 font-semibold text-slate-700">${item.clientName}</td>`;
-                    } else if (key === 'assignedTo' && item.userName) {
-                        bodyHtml += `<td class="p-3 font-semibold text-slate-700">${item.userName}</td>`;
-                    } else if (key.toLowerCase() === 'id' || key.toLowerCase().endsWith('id')) {
+                    // Mostrar nombres en lugar de IDs si el backend envía los objetos relacionados
+                    if (currentEntity === 'service-orders' && key === 'clientId') {
+                        const clientName = item.client && item.client.name ? item.client.name : `Cliente #${rawValue}`;
+                        bodyHtml += `<td class="p-3 font-semibold text-slate-700">${clientName}</td>`;
+                    } 
+                    else if (currentEntity === 'service-orders' && key === 'assignedTo') {
+                        const userName = item.user && item.user.name ? item.user.name : `Usuario #${rawValue}`;
+                        bodyHtml += `<td class="p-3 font-semibold text-slate-700">${userName}</td>`;
+                    } 
+                    else if (key.toLowerCase() === 'id' || key.toLowerCase().endsWith('id')) {
                         bodyHtml += `<td class="p-3 font-bold text-indigo-600">${formattedValue}</td>`;
-                    } else {
+                    } 
+                    else {
                         bodyHtml += `<td class="p-3 text-slate-600 truncate max-w-xs">${formattedValue}</td>`;
                     }
                 }
