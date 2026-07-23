@@ -17,18 +17,20 @@ export class OrdersService {
   }
 
   async findAll() {
-    return await this.orderRepository.find({
-      select: [
-        'id', 
-        'tenantId', 
-        'clientId', 
-        'assignedTo', 
-        'status', 
-        'description', 
-        'totalCost', 
-        'createdAt'
-      ],
+    const orders = await this.orderRepository.find({
+      relations: ['client', 'user', 'tenant'],
     });
+  
+    return orders.map(order => ({
+      id: order.id,
+      tenantId: order.tenantId,
+      clientId: order.client?.name || order.clientId, 
+      assignedTo: order.user?.name || order.assignedTo, 
+      status: order.status,
+      description: order.description,
+      totalCost: order.totalCost,
+      createdAt: order.createdAt,
+    }));
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
