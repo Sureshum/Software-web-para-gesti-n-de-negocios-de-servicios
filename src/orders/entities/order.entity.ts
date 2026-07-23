@@ -26,7 +26,7 @@ export class ServiceOrder {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  // Relaciones (asumiendo que tienes las entidades Tenant, Client, User)
+  // Relaciones
   @ManyToOne('Tenant', 'serviceOrders')
   @JoinColumn({ name: 'tenant_id' })
   tenant: any;
