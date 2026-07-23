@@ -80,10 +80,6 @@ function formatCellValue(key, value) {
         }
     }
 
-    if (key === 'clientId' || key === 'assignedTo') {
-        return cleanPrefixedName(value);
-    }
-
     if (typeof value === 'object') {
         return JSON.stringify(value);
     }
@@ -100,6 +96,7 @@ async function updateOrderStatus(id, newStatus) {
         });
 
         if (!response.ok) throw new Error('No se pudo actualizar el estado');
+        loadData();
     } catch (error) {
         console.error(error);
         alert('Error al actualizar el estado en el servidor.'); 
@@ -128,72 +125,26 @@ async function openEditModal(id) {
     try {
         const response = await fetch(`${API_URL}/${currentEntity}/${id}`);
         if (!response.ok) throw new Error('No se pudo obtener el registro');
-        const rawItem = await response.json();
+        const item = await response.json();
 
         const container = document.getElementById('editFormFields');
         container.innerHTML = '';
 
-        const cleanItem = {};
-        for (const [key, value] of Object.entries(rawItem)) {
-            if (value !== null && typeof value !== 'object') {
-                let cleanValue = value;
-                // Limpiar prefijos si es clientId o assignedTo
-                if (key === 'clientId' || key === 'assignedTo') {
-                    cleanValue = String(value)
-                        .replace(/^Cliente\s*#\s*/, '')
-                        .replace(/^Usuario\s*#\s*/, '')
-                        .replace(/^Cliente#/, '')
-                        .replace(/^Usuario#/, '')
-                        .replace(/^#/, '')
-                        .trim();
-                }
-                cleanItem[key] = cleanValue;
-            }
-        }
+        for (const [key, value] of Object.entries(item)) {
+            if (key === 'id' || key === 'createdAt' || key === 'updatedAt') continue;
 
-        // Definir qué campos mostrar en el modal de edición
-        const fieldsToShow = {
-            'tenants': ['name', 'subdomain', 'email', 'phone'],
-            'users': ['tenantId', 'name', 'email', 'role', 'phone'],
-            'clients': ['tenantId', 'name', 'email', 'phone'],
-            'inventory': ['tenantId', 'name', 'stock', 'minStockAlert', 'unitPrice'],
-            'service-orders': ['tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost']
-        };
-
-        const allowedFields = fieldsToShow[currentEntity] || [];
-
-        for (const key of allowedFields) {
-            if (!(key in cleanItem)) continue;
-            
-            const value = cleanItem[key];
             const div = document.createElement('div');
             div.className = 'flex flex-col';
-            
-            if (key === 'status' && currentEntity === 'service-orders') {
-                const statuses = ['pending', 'in_progress', 'completed', 'cancelled'];
-                let selectOptions = statuses.map(st => 
-                    `<option value="${st}" ${st === value ? 'selected' : ''}>${st}</option>`
-                ).join('');
-                
-                div.innerHTML = `
-                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
-                    <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
-                        ${selectOptions}
-                    </select>
-                `;
-            } else {
-                div.innerHTML = `
-                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
-                    <input type="text" name="${key}" value="${value !== null && value !== undefined ? value : ''}" 
-                           class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
-                `;
-            }
+            div.innerHTML = `
+                <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
+                <input type="text" name="${key}" value="${value !== null ? value : ''}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+            `;
             container.appendChild(div);
         }
 
         document.getElementById('editModal').classList.remove('hidden');
     } catch (error) {
-        console.error('Error en openEditModal:', error);
+        console.error(error);
         alert('Error al cargar los datos para editar.');
     }
 }
@@ -234,6 +185,41 @@ async function saveEdit(event) {
     }
 }
 
+async function adjustStock(id, multiplier) {
+    const qtyInput = document.getElementById(`qty-${id}`);
+    const amount = parseInt(qtyInput.value) || 0;
+    
+    if (amount <= 0) {
+        alert('Ingresa una cantidad válida mayor a 0');
+        return;
+    }
+
+    const stockElement = document.getElementById(`stock-val-${id}`);
+    const currentStock = parseInt(stockElement.textContent) || 0;
+    const newStock = currentStock + (amount * multiplier);
+
+    if (newStock < 0) {
+        alert('El stock no puede quedar en un valor negativo.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/inventory/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stock: newStock })
+        });
+
+        if (!response.ok) throw new Error('Error al actualizar el stock');
+
+        stockElement.textContent = newStock;
+        qtyInput.value = 1;
+    } catch (error) {
+        console.error(error);
+        alert('Hubo un error al modificar el stock en el servidor.');
+    }
+}
+
 async function loadData() {
     const tableHead = document.getElementById('tableHead');
     const tableBody = document.getElementById('tableBody');
@@ -252,18 +238,10 @@ async function loadData() {
             return;
         }
 
-        const entityColumns = {
-            'tenants': ['id', 'name', 'subdomain', 'email', 'phone', 'createdAt', 'updatedAt'],
-            'users': ['id', 'tenantId', 'name', 'email', 'role', 'phone', 'createdAt', 'updatedAt'],
-            'clients': ['id', 'tenantId', 'name', 'email', 'phone', 'createdAt', 'updatedAt'],
-            'inventory': ['id', 'tenantId', 'name', 'stock', 'minStockAlert', 'unitPrice', 'createdAt', 'updatedAt'],
-            'service-orders': ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt']
-        };
-
         const columnNamesMap = {
             id: 'ID',
             tenantId: 'Negocio ID',
-            clientId: 'Cliente',
+            clientId: 'Cliente ID',
             assignedTo: 'Asignado a',
             name: 'Nombre',
             subdomain: 'Subdominio',
@@ -281,10 +259,7 @@ async function loadData() {
             updatedAt: 'Fecha de Actualización'
         };
 
-        const allowedKeys = entityColumns[currentEntity] || Object.keys(data[0]);
-        
-        const keys = allowedKeys.filter(key => key in data[0]);
-        
+        const keys = Object.keys(data[0]);
         let headHtml = '<tr>';
         keys.forEach(key => {
             const displayName = columnNamesMap[key] || key.toUpperCase();
@@ -326,9 +301,18 @@ async function loadData() {
                             </div>
                         </td>
                     `;
-                } else {
+                }else {
                     const formattedValue = formatCellValue(key, rawValue);
-                    bodyHtml += `<td class="p-3 text-slate-600 truncate max-w-xs">${formattedValue}</td>`;
+                    
+                    if (key === 'clientId' && item.clientName) {
+                        bodyHtml += `<td class="p-3 font-semibold text-slate-700">${item.clientName}</td>`;
+                    } else if (key === 'assignedTo' && item.userName) {
+                        bodyHtml += `<td class="p-3 font-semibold text-slate-700">${item.userName}</td>`;
+                    } else if (key.toLowerCase() === 'id' || key.toLowerCase().endsWith('id')) {
+                        bodyHtml += `<td class="p-3 font-bold text-indigo-600">${formattedValue}</td>`;
+                    } else {
+                        bodyHtml += `<td class="p-3 text-slate-600 truncate max-w-xs">${formattedValue}</td>`;
+                    }
                 }
             });
 
@@ -346,16 +330,5 @@ async function loadData() {
     } catch (error) {
         console.error(error);
         tableBody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-red-500">Error al conectar con el servidor o el endpoint GET no está creado.</td></tr>`;
-    }
-
-    function cleanPrefixedName(value) {
-        if (typeof value !== 'string') return value;
-        return value
-            .replace(/^Cliente\s*#\s*/, '')
-            .replace(/^Usuario\s*#\s*/, '')
-            .replace(/^Cliente#/, '')
-            .replace(/^Usuario#/, '')
-            .replace(/^#/, '')
-            .trim();
     }
 }
