@@ -96,7 +96,6 @@ async function updateOrderStatus(id, newStatus) {
         });
 
         if (!response.ok) throw new Error('No se pudo actualizar el estado');
-        
     } catch (error) {
         console.error(error);
         alert('Error al actualizar el estado en el servidor.'); 
@@ -185,41 +184,6 @@ async function saveEdit(event) {
     }
 }
 
-async function adjustStock(id, multiplier) {
-    const qtyInput = document.getElementById(`qty-${id}`);
-    const amount = parseInt(qtyInput.value) || 0;
-    
-    if (amount <= 0) {
-        alert('Ingresa una cantidad válida mayor a 0');
-        return;
-    }
-
-    const stockElement = document.getElementById(`stock-val-${id}`);
-    const currentStock = parseInt(stockElement.textContent) || 0;
-    const newStock = currentStock + (amount * multiplier);
-
-    if (newStock < 0) {
-        alert('El stock no puede quedar en un valor negativo.');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_URL}/inventory/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ stock: newStock })
-        });
-
-        if (!response.ok) throw new Error('Error al actualizar el stock');
-
-        stockElement.textContent = newStock;
-        qtyInput.value = 1;
-    } catch (error) {
-        console.error(error);
-        alert('Hubo un error al modificar el stock en el servidor.');
-    }
-}
-
 async function loadData() {
     const tableHead = document.getElementById('tableHead');
     const tableBody = document.getElementById('tableBody');
@@ -259,7 +223,7 @@ async function loadData() {
             updatedAt: 'Fecha de Actualización'
         };
 
-        // Definición estricta de llaves según la entidad para evitar columnas no deseadas
+        // LLAVES ESTRICTAMENTE FILTRADAS PARA ÓRDENES Y OTRAS TABLAS
         let keys = [];
         if (currentEntity === 'service-orders') {
             keys = ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt'];
@@ -267,7 +231,7 @@ async function loadData() {
             keys = Object.keys(data[0]).filter(key => {
                 const k = key.toLowerCase();
                 return k !== 'client' && k !== 'user' && k !== 'clientname' && k !== 'username' && k !== 'updatedat' &&
-                       (typeof data[0][key] !== 'object' || data[0][key] === null);
+                       typeof data[0][key] !== 'object';
             });
         }
 
