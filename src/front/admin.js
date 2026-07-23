@@ -80,6 +80,16 @@ function formatCellValue(key, value) {
         }
     }
 
+    if (typeof value === 'string' && (key === 'clientId' || key === 'assignedTo')) {
+        return value
+            .replace(/^Cliente\s*#\s*/, '')
+            .replace(/^Usuario\s*#\s*/, '')
+            .replace(/^Cliente#/, '')
+            .replace(/^Usuario#/, '')
+            .replace(/^#/, '')
+            .trim();
+    }
+
     if (typeof value === 'object') {
         return JSON.stringify(value);
     }
@@ -124,10 +134,29 @@ async function openEditModal(id) {
     try {
         const response = await fetch(`${API_URL}/${currentEntity}/${id}`);
         if (!response.ok) throw new Error('No se pudo obtener el registro');
-        const item = await response.json();
+        const rawItem = await response.json();
 
         const container = document.getElementById('editFormFields');
         container.innerHTML = '';
+
+        // Limpiar el objeto: eliminar propiedades que sean objetos y limpiar strings
+        const cleanItem = {};
+        for (const [key, value] of Object.entries(rawItem)) {
+            if (value !== null && typeof value !== 'object') {
+                let cleanValue = value;
+                // Limpiar prefijos si es clientId o assignedTo
+                if (key === 'clientId' || key === 'assignedTo') {
+                    cleanValue = String(value)
+                        .replace(/^Cliente\s*#\s*/, '')
+                        .replace(/^Usuario\s*#\s*/, '')
+                        .replace(/^Cliente#/, '')
+                        .replace(/^Usuario#/, '')
+                        .replace(/^#/, '')
+                        .trim();
+                }
+                cleanItem[key] = cleanValue;
+            }
+        }
 
         // Definir qué campos mostrar en el modal de edición
         const fieldsToShow = {
@@ -138,33 +167,16 @@ async function openEditModal(id) {
             'service-orders': ['tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost']
         };
 
-        // Obtener los campos permitidos para la entidad actual
         const allowedFields = fieldsToShow[currentEntity] || [];
 
-        for (const [key, value] of Object.entries(item)) {
-            // Saltar campos que no queremos mostrar
-            if (key === 'id' || key === 'createdAt' || key === 'updatedAt') continue;
+        for (const key of allowedFields) {
+            if (!(key in cleanItem)) continue;
             
-            // Saltar objetos anidados
-            if (typeof value === 'object' && value !== null && !Array.isArray(value)) continue;
-            
-            // Solo mostrar campos permitidos
-            if (!allowedFields.includes(key)) continue;
-
+            const value = cleanItem[key];
             const div = document.createElement('div');
             div.className = 'flex flex-col';
             
-            // Para campos que son IDs, mostrar como texto deshabilitado o select
-            if (key === 'tenantId' || key === 'clientId' || key === 'assignedTo') {
-                div.innerHTML = `
-                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
-                    <input type="number" name="${key}" value="${value !== null ? value : ''}" 
-                           class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50" 
-                           readonly>
-                    <span class="text-xs text-slate-400 mt-1">⚠️ Este campo no se puede editar</span>
-                `;
-            } else if (key === 'status' && currentEntity === 'service-orders') {
-                // Select para el estado
+            if (key === 'status' && currentEntity === 'service-orders') {
                 const statuses = ['pending', 'in_progress', 'completed', 'cancelled'];
                 let selectOptions = statuses.map(st => 
                     `<option value="${st}" ${st === value ? 'selected' : ''}>${st}</option>`
@@ -179,7 +191,7 @@ async function openEditModal(id) {
             } else {
                 div.innerHTML = `
                     <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
-                    <input type="text" name="${key}" value="${value !== null ? value : ''}" 
+                    <input type="text" name="${key}" value="${value !== null && value !== undefined ? value : ''}" 
                            class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
                 `;
             }
@@ -188,7 +200,7 @@ async function openEditModal(id) {
 
         document.getElementById('editModal').classList.remove('hidden');
     } catch (error) {
-        console.error(error);
+        console.error('Error en openEditModal:', error);
         alert('Error al cargar los datos para editar.');
     }
 }
