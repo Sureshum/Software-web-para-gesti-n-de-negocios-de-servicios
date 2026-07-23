@@ -1,4 +1,4 @@
-const API_URL = 'https://software-web-para-gesti-n-de-negocios-de.onrender.com';
+const API_URL = 'http://localhost:3000';
 const ADMIN_PASSWORD = 'admin'; 
 let currentEntity = 'tenants';
 let editingId = null;
@@ -138,7 +138,7 @@ async function openEditModal(id) {
             div.className = 'flex flex-col';
             div.innerHTML = `
                 <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
-                <input type="text" name="${key}" value="${value !== null && typeof value !== 'object' ? value : ''}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                <input type="text" name="${key}" value="${value !== null ? value : ''}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
             `;
             container.appendChild(div);
         }
@@ -304,14 +304,11 @@ async function loadData() {
                         </td>
                     `;
                 } else {
-                    // Si el backend envía un objeto (por las relaciones), intentamos mostrar su propiedad 'name'
-                    if (typeof rawValue === 'object' && rawValue !== null && 'name' in rawValue) {
-                        bodyHtml += `<td class="p-3 text-slate-700 font-medium">${rawValue.name}</td>`;
-                    } else if (key.toLowerCase() === 'id' || key.toLowerCase().endsWith('id')) {
-                        const formattedValue = formatCellValue(key, rawValue);
+                    const formattedValue = formatCellValue(key, rawValue);
+                    
+                    if (key.toLowerCase() === 'id' || key.toLowerCase().endsWith('id')) {
                         bodyHtml += `<td class="p-3 font-bold text-indigo-600">${formattedValue}</td>`;
                     } else {
-                        const formattedValue = formatCellValue(key, rawValue);
                         bodyHtml += `<td class="p-3 text-slate-600 truncate max-w-xs">${formattedValue}</td>`;
                     }
                 }
