@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity('service_orders')
 export class ServiceOrder {
@@ -25,4 +25,16 @@ export class ServiceOrder {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @ManyToOne('Tenant', 'serviceOrders')
+  @JoinColumn({ name: 'tenant_id' })
+  tenant: any;
+
+  @ManyToOne('Client', 'serviceOrders')
+  @JoinColumn({ name: 'client_id' })
+  client: any;
+
+  @ManyToOne('User', 'serviceOrders')
+  @JoinColumn({ name: 'assigned_to' })
+  user: any;
 }
