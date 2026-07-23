@@ -28,7 +28,7 @@ export class InventoryService {
     return this.findOne(id);
   }
 
-  async findAll() {
+  async findAll(): Promise<any[]> {
     const items = await this.inventoryRepository.find({
       relations: ['tenant'],
     });
