@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://software-web-para-gesti-n-de-negocios-de.onrender.com';
 const ADMIN_PASSWORD = 'admin'; 
 let currentEntity = 'tenants';
 let editingId = null;
