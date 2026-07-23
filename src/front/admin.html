@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SaaS</title>
+    <link rel="icon" type="image/png" href="https://pinfinityar.com/cdn/shop/files/hololive-english-justice-limited-edition-set-5392763.png?v=1778175920&width=1800">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans flex flex-col h-screen overflow-hidden">
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="loginScreen" class="min-h-screen flex flex-col w-full overflow-y-auto">
+        <div class="max-w-7xl w-full mx-auto p-6 flex justify-end">
+            <a href="index.html" class="bg-slate-900 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-slate-800 transition shadow-sm flex items-center gap-2">
+                ← Volver al Panel
+            </a>
+        </div>
+
+        <div class="flex-grow flex items-center justify-center p-6">
+            <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+                <h1 class="text-2xl font-bold text-slate-900 mb-6 text-center">Panel de Administración</h1>
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium">Contraseña de Administrador</label>
+                        <input type="password" id="adminPassword" required class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white p-2 rounded-lg font-medium hover:bg-indigo-700 transition">Entrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL DE DATOS -->
+    <div id="adminPanel" class="hidden flex flex-col md:flex-row flex-1 h-screen overflow-hidden relative">
+        
+        <!-- Botón de menú hamburguesa para móviles -->
+        <button id="mobile-menu-btn" class="md:hidden absolute top-4 left-4 z-50 bg-slate-900 text-white p-2.5 rounded-xl shadow-lg focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+
+        <!-- Sidebar responsivo -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 flex flex-col justify-between transform -translate-x-full transition-transform duration-300 ease-in-out md:translate-x-0 md:static shadow-xl">
+            <div>
+                <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                    <div>
+                        <h1 class="text-xl font-bold text-white tracking-wider">SaaS Admin</h1>
+                        <p class="text-xs text-slate-400 mt-1">Gestión de Base de Datos</p>
+                    </div>
+                </div>
+
+                <!-- Pestañas de Navegación en Sidebar para mantener consistencia móvil -->
+                <nav class="p-4 space-y-2">
+                    <button onclick="switchTab('tenants')" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition bg-indigo-600 text-white" data-target="tenants">
+                        🏢 Negocios
+                    </button>
+                    <button onclick="switchTab('users')" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition hover:bg-slate-800 hover:text-white text-slate-300" data-target="users">
+                        👥 Usuarios
+                    </button>
+                    <button onclick="switchTab('clients')" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition hover:bg-slate-800 hover:text-white text-slate-300" data-target="clients">
+                        🤝 Clientes
+                    </button>
+                    <button onclick="switchTab('inventory')" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition hover:bg-slate-800 hover:text-white text-slate-300" data-target="inventory">
+                        📦 Inventario
+                    </button>
+                    <button onclick="switchTab('service-orders')" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition hover:bg-slate-800 hover:text-white text-slate-300" data-target="service-orders">
+                        📋 Órdenes
+                    </button>
+                </nav>
+            </div>
+
+            <div class="p-4 border-t border-slate-800 flex flex-col gap-2">
+                <a href="index.html" class="w-full flex items-center justify-center gap-2 bg-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-700 transition">
+                    ← Volver al Panel Principal
+                </a>
+                <button onclick="logout()" class="w-full bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2.5 rounded-xl font-medium hover:bg-red-500 hover:text-white transition text-sm">
+                    Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="flex-1 flex flex-col h-screen overflow-y-auto p-4 md:p-8 pt-16 md:pt-8 bg-slate-100">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 gap-4">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-900">Base de Datos - Visualizador</h1>
+                    <p class="text-slate-600 text-xs md:text-sm">Registros almacenados en tiempo real.</p>
+                </div>
+            </header>
+
+            <!-- Contenedor de Tablas con Scroll Horizontal Optimizado -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-grow mb-6">
+                <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+                    <h2 id="tableTitle" class="text-sm md:text-base font-bold text-slate-700 uppercase tracking-wide">Negocios</h2>
+                    <button onclick="loadData()" class="bg-white border border-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-slate-50 transition shadow-sm flex items-center gap-1.5">
+                        🔄 Actualizar
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto w-full flex-grow">
+                    <table class="w-full text-left border-collapse min-w-max">
+                        <thead id="tableHead" class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200"></thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de edición -->
+    <div id="editModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
+            <h3 class="text-lg font-bold mb-4 text-slate-800">Editar Registro</h3>
+            <form id="editForm" onsubmit="saveEdit(event)" class="space-y-4">
+                <div id="editFormFields" class="space-y-3 max-h-96 overflow-y-auto pr-1"></div>
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-200 transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

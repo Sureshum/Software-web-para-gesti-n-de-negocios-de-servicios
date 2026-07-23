@@ -1,0 +1,11 @@
+body {
+    transition: background-color 0.3s ease;
+}
+
+pre {
+    max-height: 300px;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #6366f1;
+}

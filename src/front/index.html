@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Enterprise - Panel Empresarial</title>
+    <link rel="icon" type="image/png" href="https://pinfinityar.com/cdn/shop/files/hololive-english-justice-limited-edition-set-5392763.png?v=1778175920&width=1800">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans flex flex-col h-screen overflow-hidden">
+
+    <!-- Botón de menú hamburguesa para móviles -->
+    <button id="mobile-menu-btn" class="md:hidden absolute top-4 left-4 z-50 bg-slate-900 text-white p-2.5 rounded-xl shadow-lg focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <!-- Sidebar responsivo -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 flex flex-col justify-between transform -translate-x-full transition-transform duration-300 ease-in-out md:translate-x-0 md:static shadow-xl">
+            <div>
+                <div class="p-6 border-b border-slate-800 pt-16 md:pt-6">
+                    <h1 class="text-xl font-bold text-white tracking-wider">SaaS Enterprise</h1>
+                    <p class="text-xs text-slate-400 mt-1">Panel de Gestión Central</p>
+                </div>
+
+                <nav class="p-4 space-y-2">
+                    <button onclick="switchSection('tenants')" id="nav-tenants" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition bg-indigo-600 text-white">
+                        🏢 Registrar Negocio
+                    </button>
+                    <button onclick="switchSection('users')" id="nav-users" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition hover:bg-slate-800 hover:text-white text-slate-300">
+                        👥 Registrar Usuario
+                    </button>
+                    <button onclick="switchSection('clients')" id="nav-clients" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition hover:bg-slate-800 hover:text-white text-slate-300">
+                        🤝 Registrar Cliente
+                    </button>
+                    <button onclick="switchSection('inventory')" id="nav-inventory" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition hover:bg-slate-800 hover:text-white text-slate-300">
+                        📦 Registrar Inventario
+                    </button>
+                    <button onclick="switchSection('service-orders')" id="nav-service-orders" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition hover:bg-slate-800 hover:text-white text-slate-300">
+                        📋 Órdenes de Servicio
+                    </button>
+                </nav>
+            </div>
+
+            <div class="p-4 border-t border-slate-800">
+                <a href="admin.html" class="w-full flex items-center justify-center gap-2 bg-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-700 transition">
+                    🔒 Panel Admin (DB)
+                </a>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col h-screen overflow-y-auto pt-16 md:pt-0">
+            
+            <header class="bg-white border-b border-slate-200 px-6 md:px-8 py-4 flex justify-between items-center shadow-sm">
+                <h2 id="headerTitle" class="text-lg md:text-xl font-bold text-slate-800 pl-10 md:pl-0">1. Registrar Negocio</h2>
+                <div class="flex items-center gap-4">
+                    <span class="text-xs bg-indigo-50 text-indigo-700 font-semibold px-3 py-1.5 rounded-full border border-indigo-100 hidden sm:inline-block">Modo Operativo</span>
+                </div>
+            </header>
+
+            <div class="p-4 md:p-8 max-w-4xl w-full mx-auto flex-grow">
+                
+                <!-- SECCIÓN 1: NEGOCIOS -->
+                <section id="section-tenants" class="form-section bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 relative mt-4">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4">Registrar Nuevo Negocio (Tenant)</h3>
+                    <form id="tenantForm" onsubmit="createEntity(event, 'tenants', 'tenantForm')" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Nombre del Negocio</label>
+                            <input type="text" name="name" required class="w-full mt-1 p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Subdominio</label>
+                            <input type="text" name="subdomain" required class="w-full mt-1 p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white p-2.5 rounded-xl font-medium hover:bg-indigo-700 transition">Guardar Negocio</button>
+                    </form>
+                </section>
+
+                <!-- SECCIÓN 2: USUARIOS -->
+                <section id="section-users" class="form-section hidden bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 mt-4">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4">Registrar Usuario para el Negocio</h3>
+                    <form id="userForm" onsubmit="createEntity(event, 'users', 'userForm')" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Seleccionar Negocio</label>
+                            <select name="tenantId" id="userTenantId" required class="w-full mt-1 p-2.5 border rounded-xl bg-white focus:ring-2 focus:ring-indigo-400 outline-none">
+                                <option value="">Cargando negocios...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Nombre</label>
+                            <input type="text" name="name" required class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Email</label>
+                            <input type="email" name="email" required class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Contraseña</label>
+                            <input type="password" name="passwordHash" required class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Rol</label>
+                            <select name="role" class="w-full mt-1 p-2.5 border rounded-xl bg-white">
+                                <option value="admin">Admin</option>
+                                <option value="staff" selected>Staff</option>
+                                <option value="client">Client</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white p-2.5 rounded-xl font-medium hover:bg-indigo-700 transition">Guardar Usuario</button>
+                    </form>
+                </section>
+
+                <!-- SECCIÓN 3: CLIENTES -->
+                <section id="section-clients" class="form-section hidden bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 mt-4">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4">Registrar Cliente</h3>
+                    <form id="clientForm" onsubmit="createEntity(event, 'clients', 'clientForm')" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Seleccionar Negocio</label>
+                            <select name="tenantId" id="clientTenantId" required class="w-full mt-1 p-2.5 border rounded-xl bg-white">
+                                <option value="">Cargando negocios...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Nombre del Cliente</label>
+                            <input type="text" name="name" required class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Teléfono</label>
+                            <input type="text" name="phone" class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Email</label>
+                            <input type="email" name="email" class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white p-2.5 rounded-xl font-medium hover:bg-indigo-700 transition">Guardar Cliente</button>
+                    </form>
+                </section>
+
+                <!-- SECCIÓN 4: INVENTARIO -->
+                <section id="section-inventory" class="form-section hidden bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 mt-4">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4">Registrar Insumo o Producto en Inventario</h3>
+                    <form id="inventoryForm" onsubmit="createEntity(event, 'inventory', 'inventoryForm')" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Seleccionar Negocio</label>
+                            <select name="tenantId" id="inventoryTenantId" required class="w-full mt-1 p-2.5 border rounded-xl bg-white">
+                                <option value="">Cargando negocios...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Nombre del Insumo / Producto</label>
+                            <input type="text" name="name" required class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Stock Inicial</label>
+                            <input type="number" name="stock" value="10" class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Alerta Stock Mínimo</label>
+                            <input type="number" name="minStockAlert" value="3" class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Precio Unitario</label>
+                            <input type="number" step="0.01" name="unitPrice" required class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white p-2.5 rounded-xl font-medium hover:bg-indigo-700 transition">Guardar en Inventario</button>
+                    </form>
+                </section>
+
+                <!-- SECCIÓN 5: ÓRDENES DE SERVICIO -->
+                <section id="section-service-orders" class="form-section hidden bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 mt-4">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4">Registrar Orden de Servicio</h3>
+                    <form id="service-ordersForm" onsubmit="createEntity(event, 'service-orders', 'service-ordersForm')" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-600">Seleccionar Negocio</label>
+                            <select name="tenantId" id="orderTenantId" required class="w-full mt-1 p-2.5 border rounded-xl bg-white">
+                                <option value="">Cargando negocios...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Cliente</label>
+                            <select name="clientId" id="orderClientId" required class="w-full mt-1 p-2.5 border rounded-xl bg-white focus:ring-2 focus:ring-indigo-400 outline-none">
+                                <option value="">Cargando clientes...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Usuario Asignado</label>
+                            <select name="assignedTo" id="orderUserId" required class="w-full mt-1 p-2.5 border rounded-xl bg-white focus:ring-2 focus:ring-indigo-400 outline-none">
+                                <option value="">Cargando usuarios...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Estado</label>
+                            <select name="status" class="w-full mt-1 p-2.5 border rounded-xl bg-white">
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600">Costo Total</label>
+                            <input type="number" step="0.01" name="totalCost" value="0.00" class="w-full mt-1 p-2.5 border rounded-xl">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-600">Descripción del Servicio</label>
+                            <textarea name="description" rows="3" required class="w-full mt-1 p-2.5 border rounded-xl"></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="w-full bg-indigo-600 text-white p-2.5 rounded-xl font-medium hover:bg-indigo-700 transition">Crear Orden de Servicio</button>
+                        </div>
+                    </form>
+                </section>
+
+            </div>
+
+            <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 ease-in-out bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg font-medium flex items-center gap-2">
+                <span>✅</span>
+                <span id="toastMessage">¡Guardado con éxito!</span>
+            </div>
+
+            <footer class="py-4 text-center text-xs text-slate-500 bg-white border-t border-slate-200">
+                ssshum25@gmail.com
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Script adicional para el comportamiento del menú hamburguesa móvil en index.html
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+
+            if (mobileMenuBtn && sidebar) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+
+                sidebar.querySelectorAll('button, a').forEach(el => {
+                    el.addEventListener('click', () => {
+                        if (window.innerWidth < 768) {
+                            sidebar.classList.add('-translate-x-full');
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
