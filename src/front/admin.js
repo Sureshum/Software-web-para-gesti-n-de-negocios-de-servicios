@@ -127,6 +127,25 @@ async function openEditModal(id) {
         if (!response.ok) throw new Error('No se pudo obtener el registro');
         const rawItem = await response.json();
 
+        let clients = [];
+        let users = [];
+        let tenants = [];
+
+        if (currentEntity === 'service-orders') {
+            try {
+                const [clientsRes, usersRes, tenantsRes] = await Promise.all([
+                    fetch(`${API_URL}/clients`),
+                    fetch(`${API_URL}/users`),
+                    fetch(`${API_URL}/tenants`)
+                ]);
+                clients = await clientsRes.json();
+                users = await usersRes.json();
+                tenants = await tenantsRes.json();
+            } catch (error) {
+                console.error('Error cargando datos para selects:', error);
+            }
+        }
+
         const container = document.getElementById('editFormFields');
         container.innerHTML = '';
 
@@ -154,13 +173,41 @@ async function openEditModal(id) {
             const div = document.createElement('div');
             div.className = 'flex flex-col';
             
-            if (key === 'tenantId' || key === 'clientId' || key === 'assignedTo') {
+            if (key === 'tenantId' && currentEntity === 'service-orders') {
+                let options = `<option value="">Seleccionar negocio...</option>`;
+                tenants.forEach(tenant => {
+                    const selected = tenant.id === value ? 'selected' : '';
+                    options += `<option value="${tenant.id}" ${selected}>${tenant.name}</option>`;
+                });
                 div.innerHTML = `
-                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
-                    <input type="number" name="${key}" value="${value !== null && value !== undefined ? value : ''}" 
-                           class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50" 
-                           readonly>
-                    <span class="text-xs text-slate-400 mt-1">⚠️ Este campo no se puede editar</span>
+                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">Negocio</label>
+                    <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                        ${options}
+                    </select>
+                `;
+            } else if (key === 'clientId' && currentEntity === 'service-orders') {
+                let options = `<option value="">Seleccionar cliente...</option>`;
+                clients.forEach(client => {
+                    const selected = client.id === value ? 'selected' : '';
+                    options += `<option value="${client.id}" ${selected}>${client.name}</option>`;
+                });
+                div.innerHTML = `
+                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">Cliente</label>
+                    <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                        ${options}
+                    </select>
+                `;
+            } else if (key === 'assignedTo' && currentEntity === 'service-orders') {
+                let options = `<option value="">Seleccionar usuario...</option>`;
+                users.forEach(user => {
+                    const selected = user.id === value ? 'selected' : '';
+                    options += `<option value="${user.id}" ${selected}>${user.name}</option>`;
+                });
+                div.innerHTML = `
+                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">Usuario Asignado</label>
+                    <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                        ${options}
+                    </select>
                 `;
             } else if (key === 'status' && currentEntity === 'service-orders') {
                 const statuses = ['pending', 'in_progress', 'completed', 'cancelled'];
@@ -190,7 +237,6 @@ async function openEditModal(id) {
         alert('Error al cargar los datos para editar.');
     }
 }
-
 function closeEditModal() {
     document.getElementById('editModal').classList.add('hidden');
     editingId = null;
