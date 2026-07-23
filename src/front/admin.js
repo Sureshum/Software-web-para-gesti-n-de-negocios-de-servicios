@@ -98,10 +98,10 @@ async function updateOrderStatus(id, newStatus) {
         });
 
         if (!response.ok) throw new Error('No se pudo actualizar el estado');
-        loadData();
     } catch (error) {
         console.error(error);
-        alert('Error al actualizar el estado en el servidor.');
+        alert('Error al actualizar el estado en el servidor.'); 
+        loadData();
     }
 }
 
@@ -303,10 +303,15 @@ async function loadData() {
                             </div>
                         </td>
                     `;
-                } else {
+                }else {
                     const formattedValue = formatCellValue(key, rawValue);
                     
-                    if (key.toLowerCase() === 'id' || key.toLowerCase().endsWith('id')) {
+                    // Si quieres mostrar etiquetas amigables para las llaves foráneas:
+                    if (key === 'clientId' && item.clientName) {
+                        bodyHtml += `<td class="p-3 font-semibold text-slate-700">${item.clientName}</td>`;
+                    } else if (key === 'assignedTo' && item.userName) {
+                        bodyHtml += `<td class="p-3 font-semibold text-slate-700">${item.userName}</td>`;
+                    } else if (key.toLowerCase() === 'id' || key.toLowerCase().endsWith('id')) {
                         bodyHtml += `<td class="p-3 font-bold text-indigo-600">${formattedValue}</td>`;
                     } else {
                         bodyHtml += `<td class="p-3 text-slate-600 truncate max-w-xs">${formattedValue}</td>`;
