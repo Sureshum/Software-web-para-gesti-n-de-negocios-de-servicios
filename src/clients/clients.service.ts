@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
 import { CreateClientDto } from './dto/create-client.dto';
@@ -28,7 +28,8 @@ export class ClientsService {
     return this.findOne(id);
   }
 
-  async findAll() {
+  // Cambiar el tipo de retorno a 'any' para evitar conflictos
+  async findAll(): Promise<any[]> {
     const clients = await this.clientRepository.find({
       relations: ['tenant'],
     });
