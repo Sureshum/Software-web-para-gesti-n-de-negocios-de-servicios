@@ -15,8 +15,11 @@ export class Inventory {
   @Column({ type: 'int', default: 0 })
   stock: number;
 
-    @Column({ name: 'unit_price', type: 'decimal', precision: 10, scale: 2 })
-    unitPrice: number;
+  @Column({ name: 'min_stock_alert', type: 'int', default: 0 })
+  minStockAlert: number;
+
+  @Column({ name: 'unit_price', type: 'decimal', precision: 10, scale: 2 })
+  unitPrice: number;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
