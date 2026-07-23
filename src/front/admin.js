@@ -120,6 +120,65 @@ async function deleteRecord(id) {
     }
 }
 
+function closeEditModal() {
+    document.getElementById('editModal').classList.add('hidden');
+    editingId = null;
+    document.getElementById('editFormFields').innerHTML = '';
+}
+
+// ==================== saveEdit - AHORA ESTÁ FUERA DE loadData ====================
+async function saveEdit(event) {
+    event.preventDefault();
+    console.log('✅ saveEdit ejecutado correctamente');
+    
+    const formData = new FormData(event.target);
+    const updatedData = {};
+    
+    formData.forEach((value, key) => {
+        if (value === '') return;
+        
+        // Convertir a número si es un ID
+        if (key === 'tenantId' || key === 'clientId' || key === 'assignedTo') {
+            updatedData[key] = Number(value);
+        } else if (!isNaN(value) && value.trim() !== '') {
+            updatedData[key] = Number(value);
+        } else {
+            updatedData[key] = value;
+        }
+    });
+
+    console.log('📦 Datos a enviar:', updatedData);
+    console.log('🆔 ID a editar:', editingId);
+    console.log('📁 Entidad:', currentEntity);
+
+    if (Object.keys(updatedData).length === 0) {
+        alert('No hay datos para guardar');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/${currentEntity}/${editingId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+        });
+
+        console.log('📡 Respuesta del servidor:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.text();
+            throw new Error(`Error ${response.status}: ${errorData}`);
+        }
+
+        closeEditModal();
+        loadData();
+        alert('✅ Registro actualizado con éxito');
+    } catch (error) {
+        console.error('❌ Error al guardar:', error);
+        alert(`❌ Error al actualizar el registro: ${error.message}`);
+    }
+}
+
 async function openEditModal(id) {
     editingId = id;
     try {
@@ -434,39 +493,4 @@ async function loadData() {
         console.error(error);
         tableBody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-red-500">Error al conectar con el servidor o el endpoint GET no está creado.</td></tr>`;
     }
-
-    async function saveEdit(event) {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const updatedData = {};
-    
-    formData.forEach((value, key) => {
-        // Si el valor es un string vacío, lo ignoramos
-        if (value === '') return;
-        
-        // Si es un número (ID), lo convertimos
-        if (!isNaN(value) && value.trim() !== '') {
-            updatedData[key] = Number(value);
-        } else {
-            updatedData[key] = value;
-        }
-    });
-
-    try {
-        const response = await fetch(`${API_URL}/${currentEntity}/${editingId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedData)
-        });
-
-        if (!response.ok) throw new Error('No se pudo actualizar');
-
-        closeEditModal();
-        loadData();
-        alert('Registro actualizado con éxito');
-    } catch (error) {
-        console.error(error);
-        alert('Error al actualizar el registro en el servidor.');
-    }
-}
 }
