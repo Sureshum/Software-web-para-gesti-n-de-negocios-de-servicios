@@ -126,7 +126,6 @@ function closeEditModal() {
     document.getElementById('editFormFields').innerHTML = '';
 }
 
-// ==================== saveEdit - AHORA ESTÁ FUERA DE loadData ====================
 async function saveEdit(event) {
     event.preventDefault();
     console.log('✅ saveEdit ejecutado correctamente');
@@ -137,7 +136,6 @@ async function saveEdit(event) {
     formData.forEach((value, key) => {
         if (value === '') return;
         
-        // Convertir a número si es un ID
         if (key === 'tenantId' || key === 'clientId' || key === 'assignedTo') {
             updatedData[key] = Number(value);
         } else if (!isNaN(value) && value.trim() !== '') {
@@ -402,8 +400,8 @@ async function loadData() {
 
         const columnNamesMap = {
             id: 'ID',
-            tenantId: 'Negocio ID',
-            clientId: 'Cliente ID',
+            tenantId: 'Negocio',  
+            clientId: 'Cliente',
             assignedTo: 'Asignado a',
             name: 'Nombre',
             subdomain: 'Subdominio',
