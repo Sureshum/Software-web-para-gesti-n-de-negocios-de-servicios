@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository } '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
 import { CreateClientDto } from './dto/create-client.dto';
@@ -25,15 +25,41 @@ export class ClientsService {
     if (result.affected === 0) {
       throw new NotFoundException(`Registro con ID ${id} no encontrado`);
     }
-    return this.findOne(id); // Retorna el registro actualizado
+    return this.findOne(id);
   }
 
-  async findAll(): Promise<Client[]> {
-    return await this.clientRepository.find();
+  async findAll() {
+    const clients = await this.clientRepository.find({
+      relations: ['tenant'],
+    });
+    
+    return clients.map(client => ({
+      id: client.id,
+      tenantId: client.tenant?.name || client.tenantId || 'Sin negocio',
+      name: client.name,
+      phone: client.phone,
+      email: client.email,
+      createdAt: client.createdAt,
+    }));
   }
 
-  async findOne(id: number): Promise<Client> {
-    return await this.clientRepository.findOneBy({ id });
+  async findOne(id: number): Promise<any> {
+    const client = await this.clientRepository.findOne({
+      where: { id },
+      relations: ['tenant'],
+    });
+    if (!client) {
+      throw new NotFoundException(`Cliente con ID ${id} no encontrado`);
+    }
+    
+    return {
+      id: client.id,
+      tenantId: client.tenantId,
+      name: client.name,
+      phone: client.phone,
+      email: client.email,
+      createdAt: client.createdAt,
+    };
   }
 
   async remove(id: number) {
@@ -43,5 +69,4 @@ export class ClientsService {
     }
     return { message: 'Cliente eliminado exitosamente' };
   }
-
 }
