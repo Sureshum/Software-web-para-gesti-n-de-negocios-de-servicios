@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete, Put } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { OrderResponseDto } from './dto/order-response.dto';
 import { ServiceOrder } from './entities/order.entity';
 
 @Controller('service-orders')
@@ -13,7 +14,7 @@ export class OrdersController {
   }
 
   @Get()
-  findAll(): Promise<ServiceOrder[]> {
+  findAll(): Promise<OrderResponseDto[]> {
     return this.ordersService.findAll();
   }
 
@@ -30,8 +31,8 @@ export class OrdersController {
     return this.ordersService.remove(+id);
   }
 
-    @Put(':id')
-    update(@Param('id') id: string, @Body() updateDto: any) {
-      return this.ordersService.update(+id, updateDto);
-    }
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateDto: any) {
+    return this.ordersService.update(+id, updateDto);
+  }
 }
