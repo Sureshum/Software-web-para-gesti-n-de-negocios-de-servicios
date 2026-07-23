@@ -3,7 +3,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServiceOrder } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { OrderResponseDto } from './dto/order-response.dto';
+
+// Definir el tipo de respuesta
+type OrderResponse = {
+  id: number;
+  tenantId: number;
+  clientId: string | number;
+  assignedTo: string | number;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  description: string;
+  totalCost: number;
+  createdAt: Date;
+};
 
 @Injectable()
 export class OrdersService {
@@ -17,7 +28,7 @@ export class OrdersService {
     return this.orderRepository.save(order);
   }
 
-  async findAll(): Promise<OrderResponseDto[]> {
+  async findAll(): Promise<OrderResponse[]> {
     const orders = await this.orderRepository.find({
       relations: ['client', 'user', 'tenant'],
     });
@@ -25,8 +36,8 @@ export class OrdersService {
     return orders.map(order => ({
       id: order.id,
       tenantId: order.tenantId,
-      clientId: order.client?.name || order.clientId,
-      assignedTo: order.user?.name || order.assignedTo,
+      clientId: order.client?.name || order.clientId || 'Sin cliente',
+      assignedTo: order.user?.name || order.assignedTo || 'Sin asignar',
       status: order.status,
       description: order.description,
       totalCost: order.totalCost,
@@ -35,7 +46,10 @@ export class OrdersService {
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
-    const item = await this.orderRepository.findOneBy({ id });
+    const item = await this.orderRepository.findOne({
+      where: { id },
+      relations: ['client', 'user', 'tenant'],
+    });
     if (!item) {
       throw new NotFoundException(`Orden con ID ${id} no encontrada`);
     }
