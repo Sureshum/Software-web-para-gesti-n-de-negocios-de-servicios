@@ -17,7 +17,7 @@ export class UsersService {
       await this.userRepository.save(user);
       return {
         message: 'Usuario guardado exitosamente',
-        user, 
+        user,
       };
     } catch (error: any) {
       if (error.code === 'ER_DUP_ENTRY') {
@@ -27,12 +27,38 @@ export class UsersService {
     }
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+  async findAll(): Promise<any[]> {
+    const users = await this.userRepository.find({
+      relations: ['tenant'],
+    });
+    
+    return users.map(user => ({
+      id: user.id,
+      tenantId: user.tenant?.name || user.tenantId || 'Sin negocio',
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+    }));
   }
 
-  async findOne(id: number): Promise<User> {
-    return await this.userRepository.findOneBy({ id });
+  async findOne(id: number): Promise<any> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['tenant'],
+    });
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+    
+    return {
+      id: user.id,
+      tenantId: user.tenantId,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+    };
   }
 
   async remove(id: number) {
@@ -44,10 +70,10 @@ export class UsersService {
   }
 
   async update(id: number, updateDto: any) {
-  const result = await this.userRepository.update(id, updateDto);
-  if (result.affected === 0) {
-    throw new NotFoundException(`Registro con ID ${id} no encontrado`);
+    const result = await this.userRepository.update(id, updateDto);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Registro con ID ${id} no encontrado`);
+    }
+    return this.findOne(id);
   }
-  return this.findOne(id); 
-}
 }
