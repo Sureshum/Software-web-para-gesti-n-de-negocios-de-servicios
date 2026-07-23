@@ -195,14 +195,14 @@ async function loadData() {
         const response = await fetch(`${API_URL}/${currentEntity}`);
         if (!response.ok) throw new Error('No se pudo obtener la información');
         
-        let data = await response.json();
+        const data = await response.json();
 
         if (data.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-500">No hay registros en esta tabla.</td></tr>`;
             return;
         }
 
-        // Definir columnas para cada entidad
+        // Definir QUÉ columnas mostrar para CADA entidad (SOLO las que queremos ver)
         const entityColumns = {
             'tenants': ['id', 'name', 'subdomain', 'email', 'phone', 'createdAt', 'updatedAt'],
             'users': ['id', 'tenantId', 'name', 'email', 'role', 'phone', 'createdAt', 'updatedAt'],
@@ -214,8 +214,8 @@ async function loadData() {
         const columnNamesMap = {
             id: 'ID',
             tenantId: 'Negocio ID',
-            clientId: 'Cliente',        
-            assignedTo: 'Asignado a',  
+            clientId: 'Cliente',
+            assignedTo: 'Asignado a',
             name: 'Nombre',
             subdomain: 'Subdominio',
             email: 'Correo',
@@ -232,8 +232,10 @@ async function loadData() {
             updatedAt: 'Fecha de Actualización'
         };
 
-        // Obtener las columnas permitidas
+        // Obtener las columnas permitidas para la entidad actual
         const allowedKeys = entityColumns[currentEntity] || Object.keys(data[0]);
+        
+        // Filtrar solo las keys que existen en los datos y están permitidas
         const keys = allowedKeys.filter(key => key in data[0]);
         
         let headHtml = '<tr>';
