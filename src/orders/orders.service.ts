@@ -32,29 +32,35 @@ export class OrdersService {
     const orders = await this.orderRepository.find({
       relations: ['client', 'user', 'tenant'],
     });
-  
-    return orders.map(order => ({
-      id: order.id,
-      tenantId: order.tenantId,
-      clientId: order.client?.name || order.clientId || 'Sin cliente',
-      assignedTo: order.user?.name || order.assignedTo || 'Sin asignar',
-      status: order.status,
-      description: order.description,
-      totalCost: order.totalCost,
-      createdAt: order.createdAt,
-    }));
-  }
 
-    return orders.map(order => ({
-      id: order.id,
-      tenantId: order.tenantId,
-      clientId: order.client?.name || order.clientId || 'Sin cliente',
-      assignedTo: order.user?.name || order.assignedTo || 'Sin asignar',
-      status: order.status,
-      description: order.description,
-      totalCost: order.totalCost,
-      createdAt: order.createdAt,
-    }));
+    return orders.map(order => {
+      // Función para limpiar nombres
+      const getCleanName = (value: any): string => {
+        if (!value) return 'Sin asignar';
+        if (typeof value === 'object' && value.name) {
+          return value.name;
+        }
+        if (typeof value === 'string') {
+          return value
+            .replace(/^Cliente #/, '')
+            .replace(/^Usuario #/, '')
+            .replace(/^Cliente#/, '')
+            .replace(/^Usuario#/, '');
+        }
+        return String(value);
+      };
+
+      return {
+        id: order.id,
+        tenantId: order.tenantId,
+        clientId: getCleanName(order.client) || order.clientId || 'Sin cliente',
+        assignedTo: getCleanName(order.user) || order.assignedTo || 'Sin asignar',
+        status: order.status,
+        description: order.description,
+        totalCost: order.totalCost,
+        createdAt: order.createdAt,
+      };
+    });
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
