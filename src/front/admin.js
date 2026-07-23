@@ -260,10 +260,17 @@ async function loadData() {
             updatedAt: 'Fecha de Actualización'
         };
 
-        // Filtramos para ignorar los objetos de relaciones ('client', 'user', 'tenant') para que no salgan como columnas
-        const keys = Object.keys(data[0]).filter(key => 
-            key !== 'client' && key !== 'user' && (typeof data[0][key] !== 'object' || data[0][key] === null)
-        );
+        // Forzamos las columnas exactas que queremos mostrar y en el orden deseado (cortando todo lo demás)
+        let keys = ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt'];
+        
+        // Si no estamos en service-orders, usamos las llaves normales del objeto pero filtradas
+        if (currentEntity !== 'service-orders') {
+            keys = Object.keys(data[0]).filter(key => {
+                const k = key.toLowerCase();
+                return k !== 'client' && k !== 'user' && k !== 'clientname' && k !== 'username' && k !== 'updatedat' &&
+                       (typeof data[0][key] !== 'object' || data[0][key] === null);
+            });
+        }
 
         let headHtml = '<tr>';
         keys.forEach(key => {
