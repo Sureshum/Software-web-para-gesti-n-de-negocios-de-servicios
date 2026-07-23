@@ -129,15 +129,60 @@ async function openEditModal(id) {
         const container = document.getElementById('editFormFields');
         container.innerHTML = '';
 
+        // Definir qué campos mostrar en el modal de edición
+        const fieldsToShow = {
+            'tenants': ['name', 'subdomain', 'email', 'phone'],
+            'users': ['tenantId', 'name', 'email', 'role', 'phone'],
+            'clients': ['tenantId', 'name', 'email', 'phone'],
+            'inventory': ['tenantId', 'name', 'stock', 'minStockAlert', 'unitPrice'],
+            'service-orders': ['tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost']
+        };
+
+        // Obtener los campos permitidos para la entidad actual
+        const allowedFields = fieldsToShow[currentEntity] || [];
+
         for (const [key, value] of Object.entries(item)) {
-            if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || typeof value === 'object') continue;
+            // Saltar campos que no queremos mostrar
+            if (key === 'id' || key === 'createdAt' || key === 'updatedAt') continue;
+            
+            // Saltar objetos anidados
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) continue;
+            
+            // Solo mostrar campos permitidos
+            if (!allowedFields.includes(key)) continue;
 
             const div = document.createElement('div');
             div.className = 'flex flex-col';
-            div.innerHTML = `
-                <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
-                <input type="text" name="${key}" value="${value !== null ? value : ''}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
-            `;
+            
+            // Para campos que son IDs, mostrar como texto deshabilitado o select
+            if (key === 'tenantId' || key === 'clientId' || key === 'assignedTo') {
+                div.innerHTML = `
+                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
+                    <input type="number" name="${key}" value="${value !== null ? value : ''}" 
+                           class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50" 
+                           readonly>
+                    <span class="text-xs text-slate-400 mt-1">⚠️ Este campo no se puede editar</span>
+                `;
+            } else if (key === 'status' && currentEntity === 'service-orders') {
+                // Select para el estado
+                const statuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+                let selectOptions = statuses.map(st => 
+                    `<option value="${st}" ${st === value ? 'selected' : ''}>${st}</option>`
+                ).join('');
+                
+                div.innerHTML = `
+                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
+                    <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                        ${selectOptions}
+                    </select>
+                `;
+            } else {
+                div.innerHTML = `
+                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">${key}</label>
+                    <input type="text" name="${key}" value="${value !== null ? value : ''}" 
+                           class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+                `;
+            }
             container.appendChild(div);
         }
 
