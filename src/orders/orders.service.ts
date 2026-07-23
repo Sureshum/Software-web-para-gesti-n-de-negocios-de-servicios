@@ -17,16 +17,18 @@ export class OrdersService {
   }
 
   async findAll() {
-    const orders = await this.orderRepository.find({
-      relations: ['client', 'user'],
+    return await this.orderRepository.find({
+      select: [
+        'id', 
+        'tenantId', 
+        'clientId', 
+        'assignedTo', 
+        'status', 
+        'description', 
+        'totalCost', 
+        'createdAt'
+      ],
     });
-  
-    // Mapeamos para asegurar una estructura plana y segura para el frontend
-    return orders.map(order => ({
-      ...order,
-      clientName: order.client?.name || `Cliente #${order.clientId}`,
-      userName: order.user?.name || `Usuario #${order.assignedTo}`,
-    }));
   }
 
   async findOne(id: number): Promise<ServiceOrder> {
