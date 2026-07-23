@@ -260,8 +260,10 @@ async function loadData() {
             updatedAt: 'Fecha de Actualización'
         };
 
-        // Filtramos para ignorar los objetos de relaciones ('client', 'user', 'tenant') para que no rompan las columnas
-        const keys = Object.keys(data[0]).filter(key => typeof data[0][key] !== 'object' || data[0][key] === null);
+        // Filtramos para ignorar los objetos de relaciones ('client', 'user', 'tenant') para que no salgan como columnas
+        const keys = Object.keys(data[0]).filter(key => 
+            key !== 'client' && key !== 'user' && (typeof data[0][key] !== 'object' || data[0][key] === null)
+        );
 
         let headHtml = '<tr>';
         keys.forEach(key => {
