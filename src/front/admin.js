@@ -125,37 +125,12 @@ async function openEditModal(id) {
     try {
         const response = await fetch(`${API_URL}/${currentEntity}/${id}`);
         if (!response.ok) throw new Error('No se pudo obtener el registro');
-        const rawItem = await response.json();
-
-        let clients = [];
-        let users = [];
-        let tenants = [];
-
-        if (currentEntity === 'service-orders') {
-            try {
-                const [clientsRes, usersRes, tenantsRes] = await Promise.all([
-                    fetch(`${API_URL}/clients`),
-                    fetch(`${API_URL}/users`),
-                    fetch(`${API_URL}/tenants`)
-                ]);
-                clients = await clientsRes.json();
-                users = await usersRes.json();
-                tenants = await tenantsRes.json();
-            } catch (error) {
-                console.error('Error cargando datos para selects:', error);
-            }
-        }
+        const item = await response.json();
 
         const container = document.getElementById('editFormFields');
         container.innerHTML = '';
 
-        const cleanItem = {};
-        for (const [key, value] of Object.entries(rawItem)) {
-            if (value !== null && typeof value !== 'object') {
-                cleanItem[key] = value;
-            }
-        }
-
+        // Definir qué campos mostrar en el modal de edición
         const fieldsToShow = {
             'tenants': ['name', 'subdomain', 'email', 'phone'],
             'users': ['tenantId', 'name', 'email', 'role', 'phone'],
@@ -167,49 +142,14 @@ async function openEditModal(id) {
         const allowedFields = fieldsToShow[currentEntity] || [];
 
         for (const key of allowedFields) {
-            if (!(key in cleanItem)) continue;
+            if (!(key in item)) continue;
             
-            const value = cleanItem[key];
+            const value = item[key];
             const div = document.createElement('div');
             div.className = 'flex flex-col';
             
-            if (key === 'tenantId' && currentEntity === 'service-orders') {
-                let options = `<option value="">Seleccionar negocio...</option>`;
-                tenants.forEach(tenant => {
-                    const selected = tenant.id === value ? 'selected' : '';
-                    options += `<option value="${tenant.id}" ${selected}>${tenant.name}</option>`;
-                });
-                div.innerHTML = `
-                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">Negocio</label>
-                    <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
-                        ${options}
-                    </select>
-                `;
-            } else if (key === 'clientId' && currentEntity === 'service-orders') {
-                let options = `<option value="">Seleccionar cliente...</option>`;
-                clients.forEach(client => {
-                    const selected = client.id === value ? 'selected' : '';
-                    options += `<option value="${client.id}" ${selected}>${client.name}</option>`;
-                });
-                div.innerHTML = `
-                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">Cliente</label>
-                    <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
-                        ${options}
-                    </select>
-                `;
-            } else if (key === 'assignedTo' && currentEntity === 'service-orders') {
-                let options = `<option value="">Seleccionar usuario...</option>`;
-                users.forEach(user => {
-                    const selected = user.id === value ? 'selected' : '';
-                    options += `<option value="${user.id}" ${selected}>${user.name}</option>`;
-                });
-                div.innerHTML = `
-                    <label class="text-xs font-semibold text-slate-600 uppercase mb-1">Usuario Asignado</label>
-                    <select name="${key}" class="p-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
-                        ${options}
-                    </select>
-                `;
-            } else if (key === 'status' && currentEntity === 'service-orders') {
+            // Si es un campo que no sea ID, mostrarlo como texto
+            if (key === 'status' && currentEntity === 'service-orders') {
                 const statuses = ['pending', 'in_progress', 'completed', 'cancelled'];
                 let selectOptions = statuses.map(st => 
                     `<option value="${st}" ${st === value ? 'selected' : ''}>${st}</option>`
@@ -236,10 +176,6 @@ async function openEditModal(id) {
         console.error('Error en openEditModal:', error);
         alert('Error al cargar los datos para editar.');
     }
-}
-function closeEditModal() {
-    document.getElementById('editModal').classList.add('hidden');
-    editingId = null;
 }
 
 async function saveEdit(event) {
