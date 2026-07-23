@@ -80,14 +80,8 @@ function formatCellValue(key, value) {
         }
     }
 
-    if (typeof value === 'string' && (key === 'clientId' || key === 'assignedTo')) {
-        return value
-            .replace(/^Cliente\s*#\s*/, '')
-            .replace(/^Usuario\s*#\s*/, '')
-            .replace(/^Cliente#/, '')
-            .replace(/^Usuario#/, '')
-            .replace(/^#/, '')
-            .trim();
+    if (key === 'clientId' || key === 'assignedTo') {
+        return cleanPrefixedName(value);
     }
 
     if (typeof value === 'object') {
@@ -139,7 +133,6 @@ async function openEditModal(id) {
         const container = document.getElementById('editFormFields');
         container.innerHTML = '';
 
-        // Limpiar el objeto: eliminar propiedades que sean objetos y limpiar strings
         const cleanItem = {};
         for (const [key, value] of Object.entries(rawItem)) {
             if (value !== null && typeof value !== 'object') {
@@ -259,7 +252,6 @@ async function loadData() {
             return;
         }
 
-        // Definir QUÉ columnas mostrar para CADA entidad (SOLO las que queremos ver)
         const entityColumns = {
             'tenants': ['id', 'name', 'subdomain', 'email', 'phone', 'createdAt', 'updatedAt'],
             'users': ['id', 'tenantId', 'name', 'email', 'role', 'phone', 'createdAt', 'updatedAt'],
@@ -289,10 +281,8 @@ async function loadData() {
             updatedAt: 'Fecha de Actualización'
         };
 
-        // Obtener las columnas permitidas para la entidad actual
         const allowedKeys = entityColumns[currentEntity] || Object.keys(data[0]);
         
-        // Filtrar solo las keys que existen en los datos y están permitidas
         const keys = allowedKeys.filter(key => key in data[0]);
         
         let headHtml = '<tr>';
@@ -356,5 +346,16 @@ async function loadData() {
     } catch (error) {
         console.error(error);
         tableBody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-red-500">Error al conectar con el servidor o el endpoint GET no está creado.</td></tr>`;
+    }
+
+    function cleanPrefixedName(value) {
+        if (typeof value !== 'string') return value;
+        return value
+            .replace(/^Cliente\s*#\s*/, '')
+            .replace(/^Usuario\s*#\s*/, '')
+            .replace(/^Cliente#/, '')
+            .replace(/^Usuario#/, '')
+            .replace(/^#/, '')
+            .trim();
     }
 }
