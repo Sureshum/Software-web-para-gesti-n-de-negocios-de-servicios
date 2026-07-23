@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm';  // <-- Aquí faltaba "from"
 import { Repository } from 'typeorm';
 import { ServiceOrder } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
