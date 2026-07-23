@@ -223,15 +223,15 @@ async function loadData() {
             updatedAt: 'Fecha de Actualización'
         };
 
-        // LLAVES ESTRICTAMENTE FILTRADAS PARA ÓRDENES Y OTRAS TABLAS
+        const blacklist = ['client', 'user', 'clientname', 'username', 'clientName', 'userName', 'updatedat', 'updatedAt'];
+
         let keys = [];
         if (currentEntity === 'service-orders') {
             keys = ['id', 'tenantId', 'clientId', 'assignedTo', 'status', 'description', 'totalCost', 'createdAt'];
         } else {
             keys = Object.keys(data[0]).filter(key => {
                 const k = key.toLowerCase();
-                return k !== 'client' && k !== 'user' && k !== 'clientname' && k !== 'username' && k !== 'updatedat' &&
-                       typeof data[0][key] !== 'object';
+                return !blacklist.includes(key) && !blacklist.includes(k) && typeof data[0][key] !== 'object';
             });
         }
 
